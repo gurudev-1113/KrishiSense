@@ -1,0 +1,9 @@
+{
+  "Apple_Black_Rot": 0,
+  "Apple_Healthy": 1,
+  "Potato_Early_Blight": 2,
+  "Potato_Healthy": 3,
+  "Tomato_Bacterial_Spot": 4,
+  "Tomato_Healthy": 5,
+  "Tomato_Yellow_Leaf_Curl_Virus": 6
+}

@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSense - Model Comparison</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a3d24">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="KrishiSense">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice-assistant.css') }}">
+    <style>
+        :root {
+            --primary: #0a3d24;
+            --primary-light: #15803d;
+            --primary-dark: #062a18;
+            --gold: #f59e0b;
+            --gold-light: #fbbf24;
+            --gold-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+            --light-green: #f0fdf4;
+            --dark: #0f172a;
+            --dark-soft: #334155;
+            --text-muted: #64748b;
+            --surface-border: #e2e8f0;
+            --shadow-premium: 0 10px 25px -5px rgba(10, 61, 36, 0.07), 0 8px 10px -6px rgba(10, 61, 36, 0.04);
+            --shadow-hover: 0 20px 35px -5px rgba(10, 61, 36, 0.12), 0 10px 10px -5px rgba(10, 61, 36, 0.05);
+            --radius-premium: 20px;
+            --radius-card: 14px;
+            --transition-premium: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(1000px circle at 10% 10%, rgba(16, 185, 129, 0.08), transparent 60%),
+                radial-gradient(800px circle at 90% 80%, rgba(245, 158, 11, 0.07), transparent 50%),
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background-attachment: fixed;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .topbar-dashboard {
+            background: #0a3d24;
+            border-bottom: 3px solid var(--gold);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        .topbar-left .logo-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        .topbar-left .logo-text .gold { color: var(--gold); }
+        .topbar-left .logo-sub {
+            font-size: 0.65rem;
+            color: #aac0b5;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding-left: 10px;
+            border-left: 1px solid rgba(255,255,255,0.15);
+        }
+        .gt-widget {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 3px 10px;
+        }
+        .gt-widget .goog-te-gadget-simple {
+            background: transparent !important;
+            border: none !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.7rem !important;
+            color: #fff !important;
+        }
+        .gt-widget .goog-te-gadget-simple .goog-te-menu-value span {
+            color: #fff !important;
+        }
+        body > .skiptranslate.goog-te-gadget-icon,
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+        .topbar-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .topbar-right .user-welcome { color: #cdd8c9; font-size: 0.85rem; }
+        .topbar-right .user-welcome strong { color: #ffffff; }
+        .btn-back {
+            background: transparent;
+            color: #cdd8c9;
+            padding: 6px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.15);
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            transition: var(--transition-premium);
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-back:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--gold);
+            color: #ffffff;
+        }
+        .btn-back.active {
+            background: rgba(34, 197, 94, 0.18);
+            border-color: rgba(74, 222, 128, 0.5);
+            color: #4ade80;
+        }
+        .btn-logout {
+            background: transparent;
+            color: #cdd8c9;
+            padding: 6px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.15);
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            transition: var(--transition-premium);
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--gold);
+            color: #ffffff;
+        }
+        .comparison-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px 60px;
+        }
+        .page-header { margin-bottom: 32px; }
+        .page-header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            letter-spacing: -0.5px;
+        }
+        .page-header h1 .highlight {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .page-header p { color: var(--text-muted); font-size: 1rem; margin-top: 4px; }
+        .selection-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-premium);
+            padding: 32px 36px;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: var(--shadow-premium);
+            margin-bottom: 28px;
+        }
+        .form-group-dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        .form-group-dashboard > div { flex: 1 1 150px; min-width: 140px; }
+        .form-group-dashboard label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--dark-soft);
+            margin-bottom: 5px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .form-group-dashboard select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(26,58,42,0.1);
+            border-radius: var(--radius-card);
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            background: rgba(255,255,255,0.8);
+            color: var(--dark);
+            transition: var(--transition-premium);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231a3a2a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
+        .form-group-dashboard select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(185,130,42,0.1);
+        }
+        .form-group-dashboard select:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-compare-models {
+            padding: 12px 36px;
+            background: var(--gold-gradient);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-card);
+            font-size: 0.9rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: var(--transition-premium);
+            box-shadow: 0 4px 20px rgba(185,130,42,0.2);
+            white-space: nowrap;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-compare-models:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 35px rgba(185,130,42,0.3);
+        }
+        .btn-compare-models:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .comparison-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-premium);
+            padding: 32px 36px;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: var(--shadow-premium);
+            display: none;
+            animation: fadeUp 0.6s ease-out;
+        }
+        .comparison-card.visible { display: block; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .comparison-table-wrapper { overflow-x: auto; margin-top: 12px; }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .comparison-table thead tr { background: rgba(26,58,42,0.06); border-radius: 8px; }
+        .comparison-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--dark-soft);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-bottom: 2px solid rgba(26,58,42,0.08);
+        }
+        .comparison-table th:not(:first-child) { text-align: center; }
+        .comparison-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(26,58,42,0.04);
+            color: var(--dark-soft);
+        }
+        .comparison-table td:not(:first-child) { text-align: center; }
+        .comparison-table tr:last-child td { border-bottom: none; }
+        .comparison-table tr:hover td { background: rgba(26,58,42,0.02); }
+        .comparison-table .model-name {
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+        .comparison-table .model-icon { font-size: 1.2rem; }
+        .comparison-table .status-badge {
+            display: inline-block;
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .comparison-table .status-badge.success { background: #d4edda; color: #155724; }
+        .comparison-table .status-badge.warning { background: #fff3cd; color: #856404; }
+        .comparison-table .status-badge.danger { background: #f8d7da; color: #721c24; }
+        .comparison-table .status-badge.info { background: #d1ecf1; color: #0c5460; }
+        .comparison-table .model-price { font-weight: 700; color: var(--primary-dark); font-size: 1.05rem; }
+        .comparison-table .model-price.gold { color: var(--gold); }
+        .comparison-table .model-price.green { color: #2c7a5a; }
+        .comparison-table .model-price.red { color: #d9534f; }
+        .comparison-table .metric-value { font-weight: 600; color: var(--dark-soft); }
+        .comparison-table .best-metric { color: #2c7a5a; font-weight: 700; }
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(26,58,42,0.06);
+        }
+        .summary-item {
+            background: rgba(255,255,255,0.6);
+            padding: 16px 20px;
+            border-radius: var(--radius-card);
+            border: 1px solid rgba(255,255,255,0.3);
+            text-align: center;
+            transition: var(--transition-premium);
+        }
+        .summary-item:hover { transform: translateY(-2px); background: rgba(255,255,255,0.8); }
+        .summary-item .label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .summary-item .value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-top: 4px;
+        }
+        .summary-item .value.gold { color: var(--gold); }
+        .summary-item .value.green { color: #2c7a5a; }
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.7s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error-msg {
+            color: #c0392b;
+            background: rgba(192,57,43,0.06);
+            padding: 12px 18px;
+            border-radius: var(--radius-card);
+            border: 1px solid rgba(192,57,43,0.15);
+            margin-top: 16px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .error-msg.visible { display: block; }
+        @media (max-width: 768px) {
+            .topbar-inner { flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+            .topbar-left .logo-sub { border-left: none; padding-left: 0; }
+            .comparison-container { padding: 20px 16px 40px; }
+            .selection-card { padding: 24px 20px; }
+            .form-group-dashboard { flex-direction: column; }
+            .form-group-dashboard > div { flex: 1 1 100%; min-width: 100%; }
+            .btn-compare-models { width: 100%; justify-content: center; }
+            .comparison-card { padding: 24px 20px; }
+            .comparison-table { font-size: 0.75rem; }
+            .comparison-table th, .comparison-table td { padding: 10px 12px; }
+            .summary-stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .page-header h1 { font-size: 1.6rem; }
+        }
+        @media (max-width: 480px) {
+            .comparison-table { font-size: 0.65rem; }
+            .comparison-table th, .comparison-table td { padding: 6px 8px; }
+            .comparison-table .model-name { font-size: 0.7rem; gap: 4px; }
+            .comparison-table .model-icon { font-size: 0.9rem; }
+            .comparison-table .status-badge { font-size: 0.55rem; padding: 2px 8px; }
+            .summary-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .summary-item { padding: 12px 14px; }
+            .summary-item .value { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar-dashboard">
+    <div class="topbar-inner">
+        <div class="topbar-left" style="display:flex; align-items:center;">
+            <a href="{{ url_for('landing') }}" style="text-decoration:none; display:flex; align-items:center;">
+                <img src="{{ url_for('static', filename='img/logo.png') }}?v=3" alt="KrishiSense" style="width:40px; height:40px; border-radius:50%; margin-right:10px; background:#fff; padding:2px; box-shadow:0 2px 8px rgba(0,0,0,0.25); object-fit:contain;" onerror="this.onerror=null; this.src='/static/logo.png?v=3';">
+                <span class="logo-text"><span class="gold">Krishi</span>Sense</span>
+            </a>
+            <span class="logo-sub" id="logoSub">Agricultural Price Prediction</span>
+        </div>
+        <div class="topbar-right">
+            <div class="lang-toggle" id="langToggle">
+          <button type="button" class="lang-btn active" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
+        </div>
+            <a href="{{ url_for('dashboard') }}" class="btn-back" id="backToDashboard" data-i18n="nav.pricedss">
+                <i class="fas fa-chart-pie"></i> Price DSS
+            </a>
+            <a href="{{ url_for('crop_bp.crop_form') }}" class="btn-back" data-i18n="nav.cropadvisor">
+                <i class="fas fa-seedling"></i> Crop Advisor
+            </a>
+            <a href="{{ url_for('disease_bp.disease_index') }}" class="btn-back" data-i18n="nav.leafscan">
+                <i class="fas fa-leaf"></i> Leaf Scan
+            </a>
+            <a href="{{ url_for('telemetry_bp.telemetry_dashboard') }}" class="btn-back" data-i18n="nav.sensornode">
+                <i class="fas fa-satellite-dish"></i> Sensor Node
+            </a>
+            <a href="{{ url_for('model_insights') }}" class="btn-back" data-i18n="nav.insights">
+                <i class="fas fa-chart-line"></i> Insights
+            </a>
+            <a href="{{ url_for('model_comparison') }}" class="btn-back active">
+                <i class="fas fa-table"></i> <span>Compare</span>
+            </a>
+            <span class="user-welcome"><i class="fa-solid fa-user" style="color: #aac0b5; margin-right: 4px;"></i><strong>{{ username }}</strong></span>
+            <a href="{{ url_for('logout') }}" class="btn-logout" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 4px;"></i>Logout</a>
+        </div>
+    </div>
+</header>
+
+<!-- COMPARISON PAGE -->
+<div class="comparison-container">
+
+    <div class="page-header">
+        <h1><i class="fa-solid fa-chart-column" style="color:var(--gold);margin-right:8px;"></i><span class="highlight" id="pageHeaderHighlight">Model Performance</span> <span id="pageHeaderRest">Comparison</span></h1>
+        <p id="pageHeaderSubtitle">Compare all 5 models (Linear Regression, Random Forest, XGBoost, LSTM, ARIMA)</p>
+    </div>
+
+    <div class="selection-card">
+        <div class="selection-title">
+            <i class="fas fa-sliders-h"></i> <span id="selectionTitleLabel">Select Commodity, Market & Month</span>
+        </div>
+        <div class="form-group-dashboard">
+            <div>
+                <label id="commodityLabel"><i class="fa-solid fa-wheat-awn" style="color:var(--gold);margin-right:4px;"></i>Commodity</label>
+                <select id="commodity">
+                    <option value="" id="selectOption1">— Select —</option>
+                    {% for commodity in commodities %}
+                    <option value="{{ commodity }}">{{ commodity }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label id="marketLabel"><i class="fa-solid fa-shop" style="color:var(--gold);margin-right:4px;"></i>Market</label>
+                <select id="market" disabled>
+                    <option value="" id="selectCommodityFirstOption">Select commodity first</option>
+                </select>
+            </div>
+            <div>
+                <label id="monthLabel"><i class="fa-solid fa-calendar-days" style="color:var(--gold);margin-right:4px;"></i>Month</label>
+                <select id="monthSelect">
+                    <option value="" id="selectOption2">— Select —</option>
+                    <option value="01" id="month01">January</option>
+                    <option value="02" id="month02">February</option>
+                    <option value="03" id="month03">March</option>
+                    <option value="04" id="month04">April</option>
+                    <option value="05" id="month05">May</option>
+                    <option value="06" id="month06">June</option>
+                    <option value="07" id="month07">July</option>
+                    <option value="08" id="month08">August</option>
+                    <option value="09" id="month09">September</option>
+                    <option value="10" id="month10">October</option>
+                    <option value="11" id="month11">November</option>
+                    <option value="12" id="month12">December</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn-compare-models" id="compareBtn" disabled>
+                    <i class="fas fa-chart-bar"></i> <span id="compareModelsLabel">Compare Models</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="errorMsg" class="error-msg"></div>
+
+    <div id="comparisonCard" class="comparison-card">
+        <div class="comparison-table-wrapper">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th id="thModel">Model</th>
+                        <th style="text-align:center;" id="thPredictedPrice">Predicted Price</th>
+                        <th style="text-align:center;">RMSE</th>
+                        <th style="text-align:center;">MAE</th>
+                        <th style="text-align:center;" id="thStatus">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonBody">
+                    <tr>
+                        <td colspan="5" style="text-align:center;color:var(--text-muted);padding:30px 0;" id="initialTableMsg">
+                            <i class="fas fa-spinner fa-spin"></i> Select options and click "Compare Models"
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="summary-stats" id="summaryStats" style="display:none;">
+            <div class="summary-item">
+                <div class="label" id="bestModelLabel">Best Model</div>
+                <div class="value gold" id="bestModelName">—</div>
+            </div>
+            <div class="summary-item">
+                <div class="label" id="lowestRMSELabel">Lowest RMSE</div>
+                <div class="value green" id="lowestRMSE">—</div>
+            </div>
+            <div class="summary-item">
+                <div class="label" id="lowestMAELabel">Lowest MAE</div>
+                <div class="value green" id="lowestMAE">—</div>
+            </div>
+            <div class="summary-item">
+                <div class="label" id="modelsWorkingLabel">Models Working</div>
+                <div class="value" id="modelsWorkingCount">—</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const translations = {
+    'en': {
+        'logoSub': 'Agricultural Price Prediction',
+        'backToDashboardLabel': 'Back to Dashboard',
+        'logoutBtn': 'Logout',
+        'pageHeaderHighlight': 'Model Performance',
+        'pageHeaderRest': 'Comparison',
+        'pageHeaderSubtitle': 'Compare all 5 models (Linear Regression, Random Forest, XGBoost, LSTM, ARIMA)',
+        'selectionTitleLabel': 'Select Commodity, Market & Month',
+        'commodityLabel': 'Commodity',
+        'marketLabel': 'Market',
+        'monthLabel': 'Month',
+        'compareModelsLabel': 'Compare Models',
+        'selectOption1': '— Select —',
+        'selectOption2': '— Select —',
+        'selectCommodityFirstOption': 'Select commodity first',
+        'month01': 'January', 'month02': 'February', 'month03': 'March', 'month04': 'April',
+        'month05': 'May', 'month06': 'June', 'month07': 'July', 'month08': 'August',
+        'month09': 'September', 'month10': 'October', 'month11': 'November', 'month12': 'December',
+        'thModel': 'Model',
+        'thPredictedPrice': 'Predicted Price',
+        'thStatus': 'Status',
+        'initialTableMsg': 'Select options and click "Compare Models"',
+        'bestModelLabel': 'Best Model',
+        'lowestRMSELabel': 'Lowest RMSE',
+        'lowestMAELabel': 'Lowest MAE',
+        'modelsWorkingLabel': 'Models Working',
+        'runningModels': 'Running models…',
+        'loadingLabel': 'Loading...',
+        'noMarketsFound': 'No markets found',
+        'errorLoadingMarkets': 'Error loading markets',
+        'predictionFailed': 'Prediction failed',
+        'noPredictionsAvailable': 'No predictions available',
+        'waitingForPredictions': 'Waiting for predictions...',
+        'active': 'Active',
+        'pending': 'Pending',
+        'ofFive': ' of 5',
+        'modelLinearRegression': 'Linear Regression',
+        'modelRandomForest': 'Random Forest',
+        'modelXGBoost': 'XGBoost',
+        'modelLSTM': 'LSTM',
+        'modelARIMA': 'ARIMA'
+    },
+    'kn': {
+        'logoSub': 'ಕೃಷಿ ಬೆಲೆ ಮುನ್ಸೂಚನೆ',
+        'backToDashboardLabel': 'ಡ್ಯಾಶ್ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ',
+        'logoutBtn': 'ನಿರ್ಗಮಿಸಿ',
+        'pageHeaderHighlight': 'ಮಾದರಿ ಕಾರ್ಯಕ್ಷಮತೆ',
+        'pageHeaderRest': 'ಹೋಲಿಕೆ',
+        'pageHeaderSubtitle': 'ಎಲ್ಲಾ 5 ಮಾದರಿಗಳನ್ನು ಹೋಲಿಸಿ (Linear Regression, Random Forest, XGBoost, LSTM, ARIMA)',
+        'selectionTitleLabel': 'ಬೆಳೆ, ಮಾರುಕಟ್ಟೆ ಮತ್ತು ತಿಂಗಳು ಆಯ್ಕೆಮಾಡಿ',
+        'commodityLabel': 'ಬೆಳೆ',
+        'marketLabel': 'ಮಾರುಕಟ್ಟೆ',
+        'monthLabel': 'ತಿಂಗಳು',
+        'compareModelsLabel': 'ಮಾದರಿಗಳನ್ನು ಹೋಲಿಸಿ',
+        'selectOption1': '— ಆಯ್ಕೆಮಾಡಿ —',
+        'selectOption2': '— ಆಯ್ಕೆಮಾಡಿ —',
+        'selectCommodityFirstOption': 'ಮೊದಲು ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ',
+        'month01': 'ಜನವರಿ', 'month02': 'ಫೆಬ್ರವರಿ', 'month03': 'ಮಾರ್ಚ್', 'month04': 'ಏಪ್ರಿಲ್',
+        'month05': 'ಮೇ', 'month06': 'ಜೂನ್', 'month07': 'ಜುಲೈ', 'month08': 'ಆಗಸ್ಟ್',
+        'month09': 'ಸೆಪ್ಟೆಂಬರ್', 'month10': 'ಅಕ್ಟೋಬರ್', 'month11': 'ನವೆಂಬರ್', 'month12': 'ಡಿಸೆಂಬರ್',
+        'thModel': 'ಮಾದರಿ',
+        'thPredictedPrice': 'ಅಂದಾಜು ಬೆಲೆ',
+        'thStatus': 'ಸ್ಥಿತಿ',
+        'initialTableMsg': 'ಆಯ್ಕೆಗಳನ್ನು ಆರಿಸಿ ಮತ್ತು "ಮಾದರಿಗಳನ್ನು ಹೋಲಿಸಿ" ಕ್ಲಿಕ್ ಮಾಡಿ',
+        'bestModelLabel': 'ಅತ್ಯುತ್ತಮ ಮಾದರಿ',
+        'lowestRMSELabel': 'ಕಡಿಮೆ RMSE',
+        'lowestMAELabel': 'ಕಡಿಮೆ MAE',
+        'modelsWorkingLabel': 'ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತಿರುವ ಮಾದರಿಗಳು',
+        'runningModels': 'ಮಾದರಿಗಳನ್ನು ಚಲಾಯಿಸಲಾಗುತ್ತಿದೆ…',
+        'loadingLabel': 'ಲೋಡ್ ಆಗುತ್ತಿದೆ...',
+        'noMarketsFound': 'ಯಾವುದೇ ಮಾರುಕಟ್ಟೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ',
+        'errorLoadingMarkets': 'ಮಾರುಕಟ್ಟೆಗಳನ್ನು ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ',
+        'predictionFailed': 'ಮುನ್ಸೂಚನೆ ವಿಫಲವಾಗಿದೆ',
+        'noPredictionsAvailable': 'ಯಾವುದೇ ಮುನ್ಸೂಚನೆಗಳು ಲಭ್ಯವಿಲ್ಲ',
+        'waitingForPredictions': 'ಮುನ್ಸೂಚನೆಗಳಿಗಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ...',
+        'active': 'ಸಕ್ರಿಯ',
+        'pending': 'ಬಾಕಿ ಇದೆ',
+        'ofFive': ' / 5',
+        'modelLinearRegression': 'ಲೀನಿಯರ್ ರಿಗ್ರೆಶನ್',
+        'modelRandomForest': 'ರಾಂಡಮ್ ಫಾರೆಸ್ಟ್',
+        'modelXGBoost': 'XGBoost',
+        'modelLSTM': 'LSTM',
+        'modelARIMA': 'ARIMA'
+    }
+};
+
+var currentLang = 'en';
+
+function setLanguage(lang) {
+    if (!translations[lang]) return;
+    currentLang = lang;
+    const t = translations[lang];
+    const idMap = [
+        'logoSub','backToDashboardLabel','logoutBtn','pageHeaderHighlight','pageHeaderRest',
+        'pageHeaderSubtitle','selectionTitleLabel','commodityLabel','marketLabel','monthLabel',
+        'compareModelsLabel','thModel','thPredictedPrice','thStatus','initialTableMsg',
+        'bestModelLabel','lowestRMSELabel','lowestMAELabel','modelsWorkingLabel'
+    ];
+    idMap.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && t[id] !== undefined) el.textContent = t[id];
+    });
+    const monthSelect = document.getElementById('monthSelect');
+    if (monthSelect) {
+        Array.from(monthSelect.options).forEach((opt) => {
+            const key = 'month' + opt.value;
+            if (t[key]) opt.textContent = t[key];
+        });
+    }
+}
+</script>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const commoditySelect = document.getElementById('commodity');
+    const marketSelect = document.getElementById('market');
+    const monthSelect = document.getElementById('monthSelect');
+    const compareBtn = document.getElementById('compareBtn');
+    const comparisonCard = document.getElementById('comparisonCard');
+    const errorMsg = document.getElementById('errorMsg');
+
+    function getModelInfo() {
+        const t = translations[currentLang];
+        return {
+            'linear_regression': { icon: '<i class="fa-solid fa-chart-line" style="color:#0284c7;"></i>', label: t.modelLinearRegression },
+            'random_forest': { icon: '<i class="fa-solid fa-tree" style="color:#15803d;"></i>', label: t.modelRandomForest },
+            'xgboost': { icon: '<i class="fa-solid fa-bolt" style="color:#f59e0b;"></i>', label: t.modelXGBoost },
+            'lstm': { icon: '<i class="fa-solid fa-brain" style="color:#7c3aed;"></i>', label: t.modelLSTM },
+            'arima': { icon: '<i class="fa-solid fa-wave-square" style="color:#0d9488;"></i>', label: t.modelARIMA }
+        };
+    }
+
+    function checkSelections() {
+        compareBtn.disabled = !(commoditySelect.value && marketSelect.value && monthSelect.value);
+    }
+
+    commoditySelect.addEventListener('change', function() {
+        const t = translations[currentLang];
+        const commodity = this.value;
+        marketSelect.disabled = true;
+        marketSelect.innerHTML = '<option value="">' + t.loadingLabel + '</option>';
+        compareBtn.disabled = true;
+        comparisonCard.classList.remove('visible');
+        errorMsg.classList.remove('visible');
+
+        if (!commodity) {
+            marketSelect.innerHTML = '<option value="">' + t.selectCommodityFirstOption + '</option>';
+            return;
+        }
+
+        fetch('/api/markets/' + encodeURIComponent(commodity))
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                marketSelect.innerHTML = '<option value="">' + t.selectOption1 + '</option>';
+                if (Array.isArray(data) && data.length) {
+                    data.forEach(function(m) {
+                        var opt = document.createElement('option');
+                        opt.value = m;
+                        opt.textContent = m;
+                        marketSelect.appendChild(opt);
+                    });
+                    marketSelect.disabled = false;
+                } else {
+                    marketSelect.innerHTML = '<option value="">' + t.noMarketsFound + '</option>';
+                }
+            })
+            .catch(function() {
+                marketSelect.innerHTML = '<option value="">' + t.errorLoadingMarkets + '</option>';
+            });
+    });
+
+    marketSelect.addEventListener('change', checkSelections);
+    monthSelect.addEventListener('change', checkSelections);
+
+    compareBtn.addEventListener('click', function() {
+        const t = translations[currentLang];
+        const commodity = commoditySelect.value;
+        const market = marketSelect.value;
+        const month = monthSelect.value;
+
+        if (!commodity || !market || !month) return;
+
+        compareBtn.disabled = true;
+        compareBtn.innerHTML = '<span class="spinner"></span> ' + t.runningModels;
+        comparisonCard.classList.remove('visible');
+        errorMsg.classList.remove('visible');
+
+        fetch('/api/predict?commodity=' + encodeURIComponent(commodity) + 
+              '&market=' + encodeURIComponent(market) + 
+              '&month=' + encodeURIComponent(month))
+            .then(function(res) {
+                if (!res.ok) {
+                    return res.json().then(function(data) {
+                        throw new Error(data.error || t.predictionFailed);
+                    });
+                }
+                return res.json();
+            })
+            .then(function(data) {
+                renderComparisonTable(data);
+                comparisonCard.classList.add('visible');
+            })
+            .catch(function(err) {
+                errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>' + err.message;
+                errorMsg.classList.add('visible');
+            })
+            .finally(function() {
+                compareBtn.disabled = false;
+                compareBtn.innerHTML = '<i class="fas fa-chart-bar"></i> ' + t.compareModelsLabel;
+            });
+    });
+
+    function renderComparisonTable(data) {
+        const tbody = document.getElementById('comparisonBody');
+        const t = translations[currentLang];
+        const modelInfo = getModelInfo();
+        
+        if (!data.model_predictions) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align:center;color:var(--text-muted);padding:30px 0;">
+                        <i class="fas fa-info-circle"></i> ${t.noPredictionsAvailable}
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        const modelKeys = ['linear_regression', 'random_forest', 'xgboost', 'lstm', 'arima'];
+        let html = '';
+        let hasValidPrediction = false;
+        let bestRMSE = Infinity;
+        let bestMAE = Infinity;
+        let bestModelName = '';
+        let modelsWorking = 0;
+
+        modelKeys.forEach(function(key) {
+            const price = data.model_predictions[key];
+            const metrics = data.model_metrics ? data.model_metrics[key] : null;
+            const isValid = price !== null && price !== undefined && !isNaN(price) && price > 0;
+            if (isValid) { modelsWorking++; hasValidPrediction = true; }
+            if (metrics && metrics.rmse && metrics.rmse > 0 && metrics.rmse < bestRMSE) { bestRMSE = metrics.rmse; }
+            if (metrics && metrics.mae && metrics.mae > 0 && metrics.mae < bestMAE) { bestMAE = metrics.mae; }
+        });
+
+        modelKeys.forEach(function(key) {
+            const info = modelInfo[key];
+            if (!info) return;
+            
+            const price = data.model_predictions[key];
+            const metrics = data.model_metrics ? data.model_metrics[key] : null;
+            const isValid = price !== null && price !== undefined && !isNaN(price) && price > 0;
+            
+            const priceDisplay = isValid ? '₹' + Number(price).toFixed(2) : '—';
+            const statusClass = isValid ? 'success' : 'warning';
+            const statusText = isValid ? t.active : t.pending;
+            const priceClass = isValid ? 'model-price gold' : 'model-price';
+            
+            const rmseDisplay = (metrics && metrics.rmse) ? '₹' + Number(metrics.rmse).toFixed(0) : '—';
+            const maeDisplay = (metrics && metrics.mae) ? '₹' + Number(metrics.mae).toFixed(0) : '—';
+            const rmseClass = (metrics && metrics.rmse && metrics.rmse === bestRMSE && isValid) ? 'best-metric' : 'metric-value';
+            const maeClass = (metrics && metrics.mae && metrics.mae === bestMAE && isValid) ? 'best-metric' : 'metric-value';
+            
+            if (isValid && metrics && metrics.rmse === bestRMSE) { bestModelName = info.label; }
+            
+            html += `
+                <tr>
+                    <td>
+                        <span class="model-name">
+                            <span class="model-icon">${info.icon}</span>
+                            ${info.label}
+                        </span>
+                    </td>
+                    <td><span class="${priceClass}">${priceDisplay}</span></td>
+                    <td><span class="${rmseClass}">${rmseDisplay}</span></td>
+                    <td><span class="${maeClass}">${maeDisplay}</span></td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                </tr>
+            `;
+        });
+
+        if (!hasValidPrediction) {
+            html = `
+                <tr>
+                    <td colspan="5" style="text-align:center;color:var(--text-muted);padding:30px 0;">
+                        <i class="fas fa-spinner fa-spin"></i> ${t.waitingForPredictions}
+                    </td>
+                </tr>
+            `;
+        }
+
+        tbody.innerHTML = html;
+
+        const summaryStats = document.getElementById('summaryStats');
+        if (hasValidPrediction) {
+            summaryStats.style.display = 'grid';
+            document.getElementById('bestModelName').textContent = bestModelName || '—';
+            document.getElementById('lowestRMSE').textContent = bestRMSE !== Infinity ? '₹' + Number(bestRMSE).toFixed(0) : '—';
+            document.getElementById('lowestMAE').textContent = bestMAE !== Infinity ? '₹' + Number(bestMAE).toFixed(0) : '—';
+            document.getElementById('modelsWorkingCount').textContent = modelsWorking + t.ofFive;
+        } else {
+            summaryStats.style.display = 'none';
+        }
+    }
+});
+</script>
+
+<script src="{{ url_for('static', filename='js/lang-toggle.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+<script src="{{ url_for('static', filename='js/voice-assistant.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSense - Price DSS Dashboard</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a3d24">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="KrishiSense">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice-assistant.css') }}">
+    <style>
+        /* ============================================================
+           DASHBOARD - PREMIUM DESIGN
+           ============================================================ */
+        
+        :root {
+            --primary: #0a3d24;
+            --primary-light: #15803d;
+            --primary-dark: #062a18;
+            --gold: #f59e0b;
+            --gold-light: #fbbf24;
+            --gold-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+            --emerald-gradient: linear-gradient(135deg, #10b981, #059669);
+            --light-green: #f0fdf4;
+            --light-green-dark: #dcfce7;
+            --dark: #0f172a;
+            --dark-soft: #334155;
+            --text-muted: #64748b;
+            --surface-card: #ffffff;
+            --surface-border: #e2e8f0;
+            --shadow-premium: 0 10px 25px -5px rgba(10, 61, 36, 0.08), 0 8px 10px -6px rgba(10, 61, 36, 0.04);
+            --shadow-hover: 0 20px 35px -5px rgba(10, 61, 36, 0.12), 0 10px 10px -5px rgba(10, 61, 36, 0.05);
+            --radius-premium: 20px;
+            --radius-card: 14px;
+            --transition-premium: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(1000px circle at 10% 10%, rgba(16, 185, 129, 0.08), transparent 60%),
+                radial-gradient(800px circle at 90% 80%, rgba(245, 158, 11, 0.07), transparent 50%),
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background-attachment: fixed;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ========== TOP BAR ========== */
+        .topbar-dashboard {
+            background: #0a3d24;
+            border-bottom: 3px solid var(--gold);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .topbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        .topbar-left .logo-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        .topbar-left .logo-text .gold { color: var(--gold); }
+        .topbar-left .logo-sub {
+            font-size: 0.65rem;
+            color: #aac0b5;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding-left: 10px;
+            border-left: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .topbar-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .topbar-right .user-welcome { color: #cdd8c9; font-size: 0.85rem; }
+        .topbar-right .user-welcome strong { color: #ffffff; }
+
+        /* ========== GOOGLE TRANSLATE WIDGET ========== */
+        .gt-widget {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 3px 10px;
+        }
+        .gt-widget .goog-te-gadget-simple {
+            background: transparent !important;
+            border: none !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.7rem !important;
+            color: #fff !important;
+        }
+        .gt-widget .goog-te-gadget-simple .goog-te-menu-value span {
+            color: #fff !important;
+        }
+        body > .skiptranslate.goog-te-gadget-icon,
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+
+        /* ========== MODEL COMPARISON BUTTON ========== */
+        .btn-compare {
+            background: transparent;
+            color: #cdd8c9;
+            padding: 6px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.15);
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            transition: var(--transition-premium);
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-compare:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--gold);
+            color: #ffffff;
+        }
+        .btn-compare.active {
+            background: rgba(34, 197, 94, 0.18);
+            border-color: rgba(74, 222, 128, 0.5);
+            color: #4ade80;
+        }
+
+        .btn-logout {
+            background: transparent;
+            color: #cdd8c9;
+            padding: 6px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.15);
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            transition: var(--transition-premium);
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--gold);
+            color: #ffffff;
+        }
+
+        /* ========== DASHBOARD CONTAINER ========== */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px 60px;
+        }
+
+        /* ========== PAGE HEADER ========== */
+        .page-header { margin-bottom: 32px; }
+        .page-header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            letter-spacing: -0.5px;
+        }
+        .page-header h1 .highlight {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .page-header p { color: var(--text-muted); font-size: 1rem; margin-top: 4px; }
+
+        /* ========== SELECTION CARD ========== */
+        .selection-card {
+            background: #ffffff;
+            border-radius: var(--radius-premium);
+            padding: 28px 32px;
+            border: 1px solid var(--surface-border);
+            box-shadow: var(--shadow-premium);
+            margin-bottom: 24px;
+            transition: var(--transition-premium);
+        }
+        .selection-card:hover { box-shadow: var(--shadow-hover); }
+        .selection-card .selection-title {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .selection-card .selection-title i { color: var(--gold); }
+
+        .form-group-dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        .form-group-dashboard > div { flex: 1 1 150px; min-width: 140px; }
+        .form-group-dashboard label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--dark-soft);
+            margin-bottom: 6px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .form-group-dashboard select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: var(--radius-card);
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            color: var(--dark);
+            transition: var(--transition-premium);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230a3d24' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
+        .form-group-dashboard select:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+        }
+        .form-group-dashboard select:disabled { opacity: 0.5; cursor: not-allowed; background: #f8fafc; }
+
+        .btn-predict-dashboard {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-card);
+            font-size: 0.92rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: var(--transition-premium);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            white-space: nowrap;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-predict-dashboard:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+        .btn-predict-dashboard:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-predict-dashboard i { font-size: 1rem; }
+
+        /* ========== RESULT CARD ========== */
+        .result-card {
+            background: #ffffff;
+            border-radius: var(--radius-premium);
+            padding: 32px 36px;
+            border: 1px solid var(--surface-border);
+            box-shadow: var(--shadow-premium);
+            display: none;
+            animation: fadeUp 0.4s ease-out;
+            transition: var(--transition-premium);
+        }
+        .result-card.visible { display: block; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== RESULT HEADER ========== */
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 22px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .result-header .title-group h2 { font-size: 1.35rem; font-weight: 800; color: var(--primary-dark); }
+        .result-header .title-group .sub { font-size: 0.82rem; color: var(--text-muted); }
+
+        .badge-result {
+            padding: 6px 20px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .badge-sell { background: #ef4444; color: white; box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3); }
+        .badge-store { background: #f59e0b; color: #0f172a; box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3); }
+        .badge-wait { background: #0284c7; color: white; box-shadow: 0 2px 10px rgba(2, 132, 199, 0.3); }
+
+        /* ========== INFO GRID ========== */
+        .info-grid-dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .info-item-dashboard {
+            background: #f8fafc;
+            padding: 16px 20px;
+            border-radius: var(--radius-card);
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            transition: var(--transition-premium);
+        }
+        .info-item-dashboard:hover { transform: translateY(-2px); background: #ffffff; border-color: #cbd5e1; box-shadow: 0 6px 18px rgba(0,0,0,0.04); }
+        .info-item-dashboard .label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .info-item-dashboard .value {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-top: 4px;
+        }
+        .info-item-dashboard .value.gold { color: #d97706; }
+        .info-item-dashboard .value.green { color: #059669; }
+        .info-item-dashboard .value.red { color: #dc2626; }
+
+        /* ========== REASON ========== */
+        .reason-box {
+            background: #fefce8;
+            padding: 18px 22px;
+            border-radius: var(--radius-card);
+            border: 1px solid #fef08a;
+            border-left: 4px solid var(--gold);
+            margin-bottom: 18px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #713f12;
+        }
+        .reason-box .seasonal-tip {
+            display: block;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(245, 158, 11, 0.3);
+            color: #854d0e;
+            font-weight: 600;
+        }
+
+        /* ========== MODEL INSIGHTS CARD ========== */
+        .model-insights {
+            background: #f8fafc;
+            border-radius: var(--radius-card);
+            padding: 18px 22px;
+            margin-bottom: 18px;
+            border: 1px solid #e2e8f0;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 14px;
+        }
+        .model-insights .insight-item {
+            text-align: center;
+            padding: 12px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-card);
+            transition: var(--transition-premium);
+        }
+        .model-insights .insight-item:hover {
+            background: #ffffff;
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.04);
+        }
+        .model-insights .insight-item .icon {
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+            color: #0f766e;
+        }
+        .model-insights .insight-item .label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .model-insights .insight-item .value {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-top: 3px;
+        }
+        .model-insights .insight-item .value.gold { color: #d97706; }
+        .model-insights .insight-item .value.green { color: #059669; }
+        .model-insights .insight-item .value.red { color: #dc2626; }
+
+        /* ========== 5-MONTH FORECAST TABLE ========== */
+        .forecast-table-wrapper {
+            background: #f8fafc;
+            border-radius: var(--radius-card);
+            padding: 20px 24px;
+            margin-bottom: 18px;
+            border: 1px solid #e2e8f0;
+        }
+        .forecast-table-title {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .forecast-table-title i { color: var(--gold); margin-right: 6px; }
+        table.forecast-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table.forecast-table th {
+            text-align: left;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 700;
+            padding: 10px 14px;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        table.forecast-table td {
+            padding: 12px 14px;
+            font-size: 0.92rem;
+            color: var(--primary-dark);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        table.forecast-table tbody tr:last-child td { border-bottom: none; }
+        table.forecast-table tbody tr:hover { background: #ffffff; }
+        table.forecast-table td.month-cell { font-weight: 600; }
+        table.forecast-table td.price-cell { font-weight: 800; color: #b45309; }
+        table.forecast-table tbody tr.current-month td.month-cell::after {
+            content: "●";
+            color: var(--gold);
+            margin-left: 6px;
+            font-size: 0.6rem;
+            vertical-align: middle;
+        }
+
+        .view-models-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #0f172a;
+            border: none;
+            padding: 10px 24px;
+            border-radius: var(--radius-card);
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-premium);
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            margin-top: 8px;
+        }
+        .view-models-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
+            color: #0f172a;
+        }
+
+        /* ========== CHARTS SECTION ========== */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 4px;
+        }
+        .chart-wrapper {
+            background: #ffffff;
+            border-radius: var(--radius-card);
+            padding: 22px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .chart-wrapper .chart-title {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .chart-wrapper .chart-title .month-badge {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 0.68rem;
+            font-weight: 700;
+        }
+        .chart-wrapper canvas { width: 100% !important; height: auto !important; max-height: 200px; }
+
+        /* ========== META INFO ========== */
+        .meta-info {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.4);
+            border-radius: var(--radius-card);
+        }
+        .meta-info .meta-item { font-size: 0.75rem; color: var(--text-muted); }
+        .meta-info .meta-item strong { color: var(--dark-soft); }
+
+        /* ========== STATUS MESSAGE ========== */
+        .status-msg {
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-top: 12px;
+            font-size: 14px;
+            display: none;
+            background: #e8f0fe;
+            color: #1a5a8a;
+            border: 1px solid #c5d9f0;
+        }
+        .status-msg.error {
+            background: #fde8e6;
+            color: #c0392b;
+            border-color: #f5c6cb;
+        }
+        .status-msg.success {
+            background: #e6f7ed;
+            color: #1f6e4c;
+            border-color: #b8e0c8;
+        }
+
+        /* ========== SPINNER ========== */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.7s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ========== ERROR ========== */
+        .error-msg {
+            color: #c0392b;
+            background: rgba(192,57,43,0.06);
+            padding: 12px 18px;
+            border-radius: var(--radius-card);
+            border: 1px solid rgba(192,57,43,0.15);
+            margin-top: 16px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .error-msg.visible { display: block; }
+
+        .btn-refresh-monthly {
+            background: transparent;
+            border: 1px solid rgba(26,58,42,0.15);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition-premium);
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: auto;
+        }
+        .btn-refresh-monthly:hover {
+            background: rgba(26,58,42,0.05);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .info-grid-dashboard { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+            .model-insights { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .topbar-inner { flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+            .topbar-left .logo-sub { border-left: none; padding-left: 0; }
+            .dashboard-container { padding: 20px 16px 40px; }
+            .selection-card { padding: 24px 20px; }
+            .form-group-dashboard { flex-direction: column; }
+            .form-group-dashboard > div { flex: 1 1 100%; min-width: 100%; }
+            .btn-predict-dashboard { width: 100%; justify-content: center; }
+            .result-card { padding: 24px 20px; }
+            .info-grid-dashboard { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .info-item-dashboard .value { font-size: 1.1rem; }
+            .page-header h1 { font-size: 1.6rem; }
+            .result-header { flex-direction: column; align-items: flex-start; }
+            .meta-info { flex-direction: column; gap: 8px; }
+            .topbar-right .user-welcome { font-size: 0.75rem; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .model-insights { grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px; }
+            .lang-toggle button { font-size: 0.55rem; padding: 3px 8px; }
+        }
+
+        @media (max-width: 480px) {
+            .btn-compare { font-size: 0.65rem; padding: 5px 10px; }
+            .btn-logout { font-size: 0.65rem; padding: 5px 10px; }
+            .topbar-right { gap: 6px; }
+            .info-grid-dashboard { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .info-item-dashboard { padding: 12px 14px; }
+            .info-item-dashboard .value { font-size: 1rem; }
+            .selection-card { padding: 18px 16px; }
+            .result-card { padding: 18px 16px; }
+            .chart-wrapper { padding: 12px; }
+            .topbar-left .logo-text { font-size: 1.2rem; }
+            .topbar-left .logo-sub { font-size: 0.55rem; }
+            .model-insights { grid-template-columns: 1fr 1fr; gap: 6px; padding: 12px; }
+            .model-insights .insight-item { padding: 8px; }
+            .model-insights .insight-item .value { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== TOP BAR ========== -->
+<header class="topbar-dashboard">
+    <div class="topbar-inner">
+        <div class="topbar-left">
+            <a href="{{ url_for('landing') }}" style="text-decoration:none; display:flex; align-items:center;">
+                <img src="{{ url_for('static', filename='img/logo.png') }}?v=3" alt="KrishiSense" style="width:40px; height:40px; border-radius:50%; margin-right:10px; background:#fff; padding:2px; box-shadow:0 2px 8px rgba(0,0,0,0.25); object-fit:contain;" onerror="this.onerror=null; this.src='/static/logo.png?v=3';">
+                <span class="logo-text"><span class="gold">Krishi</span>Sense</span>
+            </a>
+            <span class="logo-sub" id="logoSub">Agricultural Price Prediction</span>
+        </div>
+        <div class="topbar-right">
+            <!-- Google Translate -->
+            <div class="lang-toggle" id="langToggle">
+          <button type="button" class="lang-btn active" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
+        </div>
+            <a href="{{ url_for('dashboard') }}" class="btn-compare active" data-i18n="nav.pricedss">
+                <i class="fas fa-chart-pie"></i> Price DSS
+            </a>
+            <a href="{{ url_for('crop_bp.crop_form') }}" class="btn-compare" data-i18n="nav.cropadvisor">
+                <i class="fas fa-seedling"></i> Crop Advisor
+            </a>
+            <a href="{{ url_for('disease_bp.disease_index') }}" class="btn-compare" data-i18n="nav.leafscan">
+                <i class="fas fa-leaf"></i> Leaf Scan
+            </a>
+            <a href="{{ url_for('telemetry_bp.telemetry_dashboard') }}" class="btn-compare" data-i18n="nav.sensornode">
+                <i class="fas fa-satellite-dish"></i> Sensor Node
+            </a>
+            <a href="{{ url_for('model_insights') }}" class="btn-compare" data-i18n="nav.insights">
+                <i class="fas fa-chart-line"></i> Insights
+            </a>
+            <a href="{{ url_for('model_comparison') }}" class="btn-compare" id="compareNavBtn">
+                <i class="fas fa-table"></i> <span id="compareNavLabel">Compare</span>
+            </a>
+            <span class="user-welcome"><i class="fa-solid fa-user" style="color: #aac0b5; margin-right: 4px;"></i><strong>{{ username }}</strong></span>
+            <a href="{{ url_for('logout') }}" class="btn-logout" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 4px;"></i>Logout</a>
+        </div>
+    </div>
+</header>
+
+<!-- ========== DASHBOARD ========== -->
+<div class="dashboard-container">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <h1 id="pageTitle"><i class="fa-solid fa-chart-line" style="color: var(--gold); margin-right: 8px;"></i><span class="highlight">Price Prediction</span> Dashboard</h1>
+        <p id="pageSubtitle">Select a commodity, market, and month to get instant price predictions and historical trends</p>
+    </div>
+
+    <!-- SELECTION CARD -->
+    <div class="selection-card">
+        <div class="selection-title">
+            <i class="fas fa-sliders-h"></i> <span id="selectionLabel">Select Crop, Market & Month</span>
+        </div>
+        <div class="form-group-dashboard">
+            <div>
+                <label id="commodityLabel"><i class="fa-solid fa-wheat-awn" style="color:var(--gold);margin-right:4px;"></i>Commodity</label>
+                <select id="commodity">
+                    <option value="">— Select —</option>
+                    {% for commodity in commodities %}
+                    <option value="{{ commodity }}">{{ commodity }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label id="marketLabel"><i class="fa-solid fa-shop" style="color:var(--gold);margin-right:4px;"></i>Market</label>
+                <select id="market" disabled>
+                    <option value="">Select commodity first</option>
+                </select>
+            </div>
+            <div>
+                <label id="monthLabel"><i class="fa-solid fa-calendar-days" style="color:var(--gold);margin-right:4px;"></i>Month</label>
+                <select id="monthSelect">
+                    <option value="">— Select —</option>
+                    <option value="01">January</option>
+                    <option value="02">February</option>
+                    <option value="03">March</option>
+                    <option value="04">April</option>
+                    <option value="05">May</option>
+                    <option value="06">June</option>
+                    <option value="07">July</option>
+                    <option value="08">August</option>
+                    <option value="09">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn-predict-dashboard" id="predictBtn" disabled>
+                    <i class="fas fa-chart-line"></i> <span id="predictLabel">Get Prediction</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATUS MESSAGE -->
+    <div id="statusMsg" class="status-msg"></div>
+
+    <!-- ERROR -->
+    <div id="errorMsg" class="error-msg"></div>
+
+    <!-- RESULT CARD -->
+    <div id="resultBox" class="result-card">
+
+        <!-- Result Header -->
+        <div class="result-header">
+            <div class="title-group">
+                <h2 id="resultTitle">Commodity @ Market</h2>
+                <span class="sub" id="resultDate">—</span>
+            </div>
+            <span id="recommendationBadge" class="badge-result">—</span>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="info-grid-dashboard">
+            <div class="info-item-dashboard">
+                <div class="label" id="priceLabel">Current Price</div>
+                <div class="value" id="lastPrice">—</div>
+            </div>
+            <div class="info-item-dashboard">
+                <div class="label" id="predLabel">Predicted Price</div>
+                <div class="value gold" id="predictedPrice">—</div>
+            </div>
+            <div class="info-item-dashboard">
+                <div class="label" id="changeLabel">Expected Change</div>
+                <div class="value" id="changePercent">—</div>
+            </div>
+            <div class="info-item-dashboard">
+                <div class="label" id="confLabel">Confidence</div>
+                <div class="value" id="confidenceLevel">—</div>
+            </div>
+        </div>
+
+        <!-- Reason -->
+        <div class="reason-box" id="reasonText"></div>
+
+        <!-- ============================================================
+             MODEL INSIGHTS (Replaces Model Comparison Table)
+             ============================================================ -->
+        <div class="model-insights" id="modelInsights">
+            <div class="insight-item">
+                <div class="icon"><i class="fa-solid fa-chart-column"></i></div>
+                <div class="label" id="insightBestModel">Best Model</div>
+                <div class="value gold" id="insightBestModelValue">—</div>
+            </div>
+            <div class="insight-item">
+                <div class="icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                <div class="label" id="insightLowestRMSE">Lowest RMSE</div>
+                <div class="value green" id="insightLowestRMSEValue">—</div>
+            </div>
+            <div class="insight-item">
+                <div class="icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                <div class="label" id="insightLowestMAE">Lowest MAE</div>
+                <div class="value green" id="insightLowestMAEValue">—</div>
+            </div>
+            <div class="insight-item">
+                <div class="icon"><i class="fa-solid fa-brain"></i></div>
+                <div class="label" id="insightModelsWorking">Models Working</div>
+                <div class="value" id="insightModelsWorkingValue">—</div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             5-MONTH FORECAST TABLE - 2 COLUMNS ONLY
+             ============================================================ -->
+        <div class="forecast-table-wrapper" id="forecastTableWrapper" style="display:none;">
+            <div class="forecast-table-title"><i class="fas fa-table"></i> <span id="forecastTableTitle">Next 5 Months Forecast</span></div>
+            <table class="forecast-table">
+                <thead>
+                    <tr>
+                        <th id="forecastMonthHeader">Month</th>
+                        <th id="forecastPriceHeader">Predicted Value</th>
+                    </tr>
+                </thead>
+                <tbody id="forecastTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- View Full Comparison Button -->
+        <div style="text-align:center;margin-bottom:16px;">
+            <a href="{{ url_for('model_comparison') }}" class="view-models-btn" id="viewModelsBtn">
+                <i class="fas fa-arrow-right"></i> <span id="viewModelsLabel">View Full Model Comparison</span>
+            </a>
+        </div>
+
+        <!-- Meta Info -->
+        <div class="meta-info">
+            <span class="meta-item"><i class="fa-solid fa-chart-simple" style="color:var(--gold); margin-right:4px;"></i><strong id="dataPoints">—</strong> <span id="dataPointsLabel">days of historical data</span></span>
+            <span class="meta-item"><i class="fa-solid fa-leaf" style="color:#2e9e5b; margin-right:4px;"></i><strong id="seasonalAvg">—</strong> <span id="seasonalAvgLabel">seasonal average</span></span>
+            <span class="meta-item"><i class="fa-solid fa-microchip" style="color:#3a7bbf; margin-right:4px;"></i><strong id="modelsWorking">—</strong> <span id="modelsWorkingLabel">models working</span></span>
+            <span class="meta-item" id="monthlyRecordInfo" style="display:none;"><i class="fa-solid fa-calendar-day" style="color:var(--gold); margin-right:4px;"></i><strong id="recordCount">—</strong> <span id="recordCountLabel">records in this month</span></span>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+            <!-- 365-Day Trend Chart -->
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-line"></i> <span id="chart365Label">365-Day Price Trend</span></div>
+                <canvas id="priceChart"></canvas>
+            </div>
+
+            <!-- Monthly Historical Chart -->
+            <div class="chart-wrapper">
+                <div class="chart-title">
+                    <i class="fas fa-calendar-alt"></i> <span id="chartYearlyLabel">Yearly Comparison for</span>
+                    <span class="month-badge" id="monthBadge">Select Month</span>
+                    <button class="btn-refresh-monthly" id="refreshMonthlyBtn" title="Refresh yearly comparison">
+                        <i class="fas fa-sync-alt"></i> <span id="refreshLabel">Refresh</span>
+                    </button>
+                </div>
+                <canvas id="monthlyChart"></canvas>
+                <div id="monthlyStats" style="margin-top:12px;font-size:0.8rem;color:var(--text-muted);text-align:center;"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- ============================================================
+     MAIN JAVASCRIPT - COMPLETE FIXED VERSION
+     ============================================================ -->
+<script>
+// ============================================================
+// LANGUAGE TRANSLATIONS
+// ============================================================
+const translations = {
+    'en': {
+        'logoSub': 'Agricultural Price Prediction',
+        'logout': 'Logout',
+        'compareNav': 'Compare',
+        'pageTitle': 'Price Prediction Dashboard',
+        'pageSubtitle': 'Select a commodity, market, and month to get instant price predictions and historical trends',
+        'selectionLabel': 'Select Crop, Market & Month',
+        'commodityLabel': 'Commodity',
+        'marketLabel': 'Market',
+        'monthLabel': 'Month',
+        'predictLabel': 'Get Prediction',
+        'selectCommodity': 'Select commodity first',
+        'loadingMarkets': 'Loading...',
+        'noMarkets': 'No markets found',
+        'currentPrice': 'Current Price',
+        'predictedPrice': 'Predicted Price',
+        'expectedChange': 'Expected Change',
+        'confidence': 'Confidence',
+        'insightBestModel': 'Best Model',
+        'insightLowestRMSE': 'Lowest RMSE',
+        'insightLowestMAE': 'Lowest MAE',
+        'insightModelsWorking': 'Models Working',
+        'viewModelsLabel': 'View Full Model Comparison',
+        'dataPointsLabel': 'days of historical data',
+        'seasonalAvgLabel': 'seasonal average',
+        'modelsWorkingLabel': 'models working',
+        'recordsLabel': 'records in this month',
+        'chart365Label': '365-Day Price Trend',
+        'chartYearlyLabel': 'Yearly Comparison for',
+        'refreshLabel': 'Refresh',
+        'selectMonth': 'Select Month',
+        'noHistoricalData': 'No historical data available for this month',
+        'loadingYearlyData': 'Loading yearly data...',
+        'runPredictionFirst': 'Run a prediction first to see yearly data',
+        'monthlyAvg': 'Monthly Avg',
+        'lastUpdated': 'Last updated',
+        'monthlyAvgPrice': 'Monthly Avg Price',
+        'predicted': 'Predicted price',
+        'current': 'Current',
+        'on': 'on',
+        'for': 'for',
+        'runningModels': 'Running models…',
+        'requestFailed': 'Request failed. Is the Flask server running?',
+        'sell': 'SELL',
+        'store': 'STORE',
+        'wait': 'WAIT',
+        'recSell': 'SELL',
+        'recStore': 'STORE',
+        'recWait': 'WAIT',
+        'recPriceHigh': 'Price is near its yearly high and expected to rise',
+        'recPriceHighMax': 'Price is at its yearly high. Sell now for maximum profit!',
+        'recPriceLow': 'Price is near yearly low and expected to rise. Store your crop for better prices!',
+        'recRiseSignificant': 'Price expected to rise significantly. Store your crop and sell later for higher profit!',
+        'recRiseModerate': 'Price expected to rise. Better to store the crop a little longer.',
+        'recDropSignificant': 'Price expected to drop. Sell now to avoid losses!',
+        'recDropModerate': 'Price expected to decrease slightly. Consider selling now.',
+        'recVolatile': 'Market is volatile. Wait for stability before making a decision.',
+        'recModerateVolatile': 'Market is moderately volatile. Monitor prices for a few days.',
+        'recStableHigh': 'Prices are stable but near yearly high. Consider selling now.',
+        'recStableLow': 'Prices are stable but near yearly low. Store and wait for price recovery.',
+        'recStable': 'Prices are stable. Wait for a better opportunity.',
+        'recReasonable': 'Price expected to change. Selling now is a reasonable choice.',
+        'recInsufficient': 'Insufficient data for a recommendation. Please check your selection.',
+        'seasonalAbove': 'Above average for this season — good time to sell!',
+        'seasonalBelow': 'Below average for this season — consider storing for better prices.',
+        'seasonalAverage': 'Prices are at seasonal average — wait for the right moment.',
+        'basedOnMonthlyAvg': 'Based on monthly average of ₹{price} from {count} records in {years} years',
+        'forecastTableTitle': 'Next 5 Months Forecast',
+        'forecastMonthHeader': 'Month',
+        'forecastPriceHeader': 'Predicted Value'
+    },
+    'kn': {
+        'logoSub': 'ಕೃಷಿ ಬೆಲೆ ಮುನ್ಸೂಚನೆ',
+        'logout': 'ನಿರ್ಗಮಿಸಿ',
+        'compareNav': 'ಹೋಲಿಕೆ',
+        'pageTitle': 'ಬೆಲೆ ಮುನ್ಸೂಚನೆ ಡ್ಯಾಶ್ಬೋರ್ಡ್',
+        'pageSubtitle': 'ಬೆಳೆ, ಮಾರುಕಟ್ಟೆ ಮತ್ತು ತಿಂಗಳು ಆಯ್ಕೆಮಾಡಿ - ತಕ್ಷಣದ ಬೆಲೆ ಮುನ್ಸೂಚನೆ ಮತ್ತು ಐತಿಹಾಸಿಕ ಪ್ರವೃತ್ತಿಗಳನ್ನು ಪಡೆಯಿರಿ',
+        'selectionLabel': 'ಬೆಳೆ, ಮಾರುಕಟ್ಟೆ ಮತ್ತು ತಿಂಗಳು ಆಯ್ಕೆಮಾಡಿ',
+        'commodityLabel': 'ಬೆಳೆ',
+        'marketLabel': 'ಮಾರುಕಟ್ಟೆ',
+        'monthLabel': 'ತಿಂಗಳು',
+        'predictLabel': 'ಮುನ್ಸೂಚನೆ ಪಡೆಯಿರಿ',
+        'selectCommodity': 'ಮೊದಲು ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ',
+        'loadingMarkets': 'ಲೋಡ್ ಆಗುತ್ತಿದೆ...',
+        'noMarkets': 'ಮಾರುಕಟ್ಟೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ',
+        'currentPrice': 'ಪ್ರಸ್ತುತ ಬೆಲೆ',
+        'predictedPrice': 'ಮುನ್ಸೂಚಿತ ಬೆಲೆ',
+        'expectedChange': 'ನಿರೀಕ್ಷಿತ ಬದಲಾವಣೆ',
+        'confidence': 'ವಿಶ್ವಾಸಾರ್ಹತೆ',
+        'insightBestModel': 'ಉತ್ತಮ ಮಾದರಿ',
+        'insightLowestRMSE': 'ಕಡಿಮೆ RMSE',
+        'insightLowestMAE': 'ಕಡಿಮೆ MAE',
+        'insightModelsWorking': 'ಕಾರ್ಯನಿರ್ವಹಿಸುವ ಮಾದರಿಗಳು',
+        'viewModelsLabel': 'ಪೂರ್ಣ ಮಾದರಿ ಹೋಲಿಕೆ ನೋಡಿ',
+        'dataPointsLabel': 'ದಿನಗಳ ಐತಿಹಾಸಿಕ ಡೇಟಾ',
+        'seasonalAvgLabel': 'ಋತುಮಾನದ ಸರಾಸರಿ',
+        'modelsWorkingLabel': 'ಮಾದರಿಗಳು ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತಿವೆ',
+        'recordsLabel': 'ಈ ತಿಂಗಳ ದಾಖಲೆಗಳು',
+        'chart365Label': '೩೬೫ ದಿನಗಳ ಬೆಲೆ ಪ್ರವೃತ್ತಿ',
+        'chartYearlyLabel': 'ವಾರ್ಷಿಕ ಹೋಲಿಕೆ',
+        'refreshLabel': 'ರಿಫ್ರೆಶ್',
+        'selectMonth': 'ತಿಂಗಳು ಆಯ್ಕೆಮಾಡಿ',
+        'noHistoricalData': 'ಈ ತಿಂಗಳಿಗೆ ಐತಿಹಾಸಿಕ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ',
+        'loadingYearlyData': 'ವಾರ್ಷಿಕ ಡೇಟಾ ಲೋಡ್ ಆಗುತ್ತಿದೆ...',
+        'runPredictionFirst': 'ವಾರ್ಷಿಕ ಡೇಟಾ ನೋಡಲು ಮೊದಲು ಮುನ್ಸೂಚನೆ ರನ್ ಮಾಡಿ',
+        'monthlyAvg': 'ಮಾಸಿಕ ಸರಾಸರಿ',
+        'lastUpdated': 'ಕೊನೆಯ ನವೀಕರಣ',
+        'monthlyAvgPrice': 'ಮಾಸಿಕ ಸರಾಸರಿ ಬೆಲೆ',
+        'predicted': 'ಮುನ್ಸೂಚಿತ ಬೆಲೆ',
+        'current': 'ಪ್ರಸ್ತುತ',
+        'on': 'ರಂದು',
+        'for': 'ಕ್ಕೆ',
+        'runningModels': 'ಮಾದರಿಗಳನ್ನು ರನ್ ಮಾಡಲಾಗುತ್ತಿದೆ…',
+        'requestFailed': 'ವಿನಂತಿ ವಿಫಲವಾಗಿದೆ. Flask ಸರ್ವರ್ ಚಾಲನೆಯಲ್ಲಿದೆಯೇ?',
+        'sell': 'ಮಾರಾಟ ಮಾಡಿ',
+        'store': 'ಸಂಗ್ರಹಿಸಿ',
+        'wait': 'ನಿರೀಕ್ಷಿಸಿ',
+        'recSell': 'ಮಾರಾಟ ಮಾಡಿ',
+        'recStore': 'ಸಂಗ್ರಹಿಸಿ',
+        'recWait': 'ನಿರೀಕ್ಷಿಸಿ',
+        'recPriceHigh': 'ಬೆಲೆ ವಾರ್ಷಿಕ ಗರಿಷ್ಠ ಮಟ್ಟದಲ್ಲಿದೆ ಮತ್ತು ಏರಿಕೆಯ ನಿರೀಕ್ಷೆಯಿದೆ',
+        'recPriceHighMax': 'ಬೆಲೆ ವಾರ್ಷಿಕ ಗರಿಷ್ಠ ಮಟ್ಟದಲ್ಲಿದೆ. ಗರಿಷ್ಠ ಲಾಭಕ್ಕಾಗಿ ಈಗ ಮಾರಾಟ ಮಾಡಿ!',
+        'recPriceLow': 'ಬೆಲೆ ವಾರ್ಷಿಕ ಕನಿಷ್ಠ ಮಟ್ಟದಲ್ಲಿದೆ ಮತ್ತು ಏರಿಕೆಯ ನಿರೀಕ್ಷೆಯಿದೆ. ಉತ್ತಮ ಬೆಲೆಗೆ ನಿಮ್ಮ ಬೆಳೆಯನ್ನು ಸಂಗ್ರಹಿಸಿ!',
+        'recRiseSignificant': 'ಬೆಲೆ ಗಣನೀಯವಾಗಿ ಏರುವ ನಿರೀಕ್ಷೆಯಿದೆ. ಹೆಚ್ಚಿನ ಲಾಭಕ್ಕಾಗಿ ಬೆಳೆಯನ್ನು ಸಂಗ್ರಹಿಸಿ ಮತ್ತು ನಂತರ ಮಾರಾಟ ಮಾಡಿ!',
+        'recRiseModerate': 'ಬೆಲೆ ಏರುವ ನಿರೀಕ್ಷೆಯಿದೆ. ಸ್ವಲ್ಪ ಸಮಯ ಬೆಳೆಯನ್ನು ಸಂಗ್ರಹಿಸುವುದು ಉತ್ತಮ.',
+        'recDropSignificant': 'ಬೆಲೆ ಕುಸಿಯುವ ನಿರೀಕ್ಷೆಯಿದೆ. ನಷ್ಟವನ್ನು ತಪ್ಪಿಸಲು ಈಗ ಮಾರಾಟ ಮಾಡಿ!',
+        'recDropModerate': 'ಬೆಲೆ ಸ್ವಲ್ಪ ಕುಸಿಯುವ ನಿರೀಕ್ಷೆಯಿದೆ. ಈಗ ಮಾರಾಟ ಮಾಡುವುದನ್ನು ಪರಿಗಣಿಸಿ.',
+        'recVolatile': 'ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಏರಿಳಿತವಿದೆ. ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳುವ ಮೊದಲು ಸ್ಥಿರತೆಗಾಗಿ ನಿರೀಕ್ಷಿಸಿ.',
+        'recModerateVolatile': 'ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಮಧ್ಯಮ ಏರಿಳಿತವಿದೆ. ಕೆಲವು ದಿನಗಳವರೆಗೆ ಬೆಲೆಗಳನ್ನು ಮೇಲ್ವಿಚಾರಣೆ ಮಾಡಿ.',
+        'recStableHigh': 'ಬೆಲೆಗಳು ಸ್ಥಿರವಾಗಿವೆ ಆದರೆ ವಾರ್ಷಿಕ ಗರಿಷ್ಠ ಮಟ್ಟದಲ್ಲಿವೆ. ಈಗ ಮಾರಾಟ ಮಾಡುವುದನ್ನು ಪರಿಗಣಿಸಿ.',
+        'recStableLow': 'ಬೆಲೆಗಳು ಸ್ಥಿರವಾಗಿವೆ ಆದರೆ ವಾರ್ಷಿಕ ಕನಿಷ್ಠ ಮಟ್ಟದಲ್ಲಿವೆ. ಸಂಗ್ರಹಿಸಿ ಮತ್ತು ಬೆಲೆ ಚೇತರಿಕೆಗಾಗಿ ನಿರೀಕ್ಷಿಸಿ.',
+        'recStable': 'ಬೆಲೆಗಳು ಸ್ಥಿರವಾಗಿವೆ. ಉತ್ತಮ ಅವಕಾಶಕ್ಕಾಗಿ ನಿರೀಕ್ಷಿಸಿ.',
+        'recReasonable': 'ಬೆಲೆ ಬದಲಾಗುವ ನಿರೀಕ್ಷೆಯಿದೆ. ಈಗ ಮಾರಾಟ ಮಾಡುವುದು ಸಮಂಜಸವಾದ ಆಯ್ಕೆಯಾಗಿದೆ.',
+        'recInsufficient': 'ಶಿಫಾರಸಿಗೆ ಸಾಕಷ್ಟು ಡೇಟಾ ಇಲ್ಲ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಆಯ್ಕೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.',
+        'seasonalAbove': 'ಈ ಋತುವಿನ ಸರಾಸರಿಗಿಂತ ಹೆಚ್ಚು — ಮಾರಾಟ ಮಾಡಲು ಉತ್ತಮ ಸಮಯ!',
+        'seasonalBelow': 'ಈ ಋತುವಿನ ಸರಾಸರಿಗಿಂತ ಕಡಿಮೆ — ಉತ್ತಮ ಬೆಲೆಗೆ ಸಂಗ್ರಹಿಸುವುದನ್ನು ಪರಿಗಣಿಸಿ.',
+        'seasonalAverage': 'ಬೆಲೆಗಳು ಋತುಮಾನದ ಸರಾಸರಿಯಲ್ಲಿವೆ — ಸರಿಯಾದ ಕ್ಷಣಕ್ಕಾಗಿ ನಿರೀಕ್ಷಿಸಿ.',
+        'basedOnMonthlyAvg': '₹{price} ರ ಮಾಸಿಕ ಸರಾಸರಿ ಆಧಾರದಲ್ಲಿ {count} ದಾಖಲೆಗಳು {years} ವರ್ಷಗಳಲ್ಲಿ',
+        'forecastTableTitle': 'ಮುಂದಿನ 5 ತಿಂಗಳ ಮುನ್ಸೂಚನೆ',
+        'forecastMonthHeader': 'ತಿಂಗಳು',
+        'forecastPriceHeader': 'ಮುನ್ಸೂಚಿತ ಬೆಲೆ'
+    }
+};
+
+// ============================================================
+// GLOBAL VARIABLES
+// ============================================================
+let currentLang = 'en';
+let priceChart = null;
+let monthlyChartInstance = null;
+let currentPredictionData = null;
+let currentForecastData = null;
+let statusMsg = document.getElementById('statusMsg');
+
+const monthNamesKn = {
+    '01': 'ಜನವರಿ', '02': 'ಫೆಬ್ರವರಿ', '03': 'ಮಾರ್ಚ್', '04': 'ಏಪ್ರಿಲ್',
+    '05': 'ಮೇ', '06': 'ಜೂನ್', '07': 'ಜುಲೈ', '08': 'ಆಗಸ್ಟ್',
+    '09': 'ಸೆಪ್ಟೆಂಬರ್', '10': 'ಅಕ್ಟೋಬರ್', '11': 'ನವೆಂಬರ್', '12': 'ಡಿಸೆಂಬರ್'
+};
+
+const monthNames = {
+    '01': 'January', '02': 'February', '03': 'March', '04': 'April',
+    '05': 'May', '06': 'June', '07': 'July', '08': 'August',
+    '09': 'September', '10': 'October', '11': 'November', '12': 'December'
+};
+
+const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// ============================================================
+// DOM REFERENCES
+// ============================================================
+const commoditySelect = document.getElementById('commodity');
+const marketSelect = document.getElementById('market');
+const monthSelect = document.getElementById('monthSelect');
+const predictBtn = document.getElementById('predictBtn');
+const resultBox = document.getElementById('resultBox');
+const errorMsg = document.getElementById('errorMsg');
+const refreshMonthlyBtn = document.getElementById('refreshMonthlyBtn');
+
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
+function getMonthName(month) {
+    if (currentLang === 'kn') {
+        return monthNamesKn[month] || month;
+    }
+    return monthNames[month] || month;
+}
+
+function getBarColor(price, avgPrice) {
+    if (price > avgPrice * 1.1) return 'rgba(44,122,90,0.85)';
+    if (price < avgPrice * 0.9) return 'rgba(217,83,79,0.85)';
+    return 'rgba(185,130,42,0.85)';
+}
+
+function formatDateForChart(dateStr) {
+    try {
+        var parts = dateStr.split('-');
+        var year = parts[0];
+        var month = parseInt(parts[1]) - 1;
+        var day = parseInt(parts[2]);
+        return shortMonthNames[month] + ' ' + day + ', ' + year;
+    } catch (e) {
+        return dateStr;
+    }
+}
+
+// ============================================================
+// TRANSLATE RECOMMENDATION REASON
+// ============================================================
+function translateRecommendation(reason, data) {
+    var t = translations[currentLang];
+    if (!reason) return '';
+    
+    if (reason.includes('Above average for this season')) return t.seasonalAbove;
+    if (reason.includes('Below average for this season')) return t.seasonalBelow;
+    if (reason.includes('Prices are at seasonal average')) return t.seasonalAverage;
+    
+    var monthlyMatch = reason.match(/Based on monthly average of ₹([\d,]+\.?\d*) from (\d+) records in (\d+) years/);
+    if (monthlyMatch) {
+        var price = monthlyMatch[1];
+        var count = monthlyMatch[2];
+        var years = monthlyMatch[3];
+        return t.basedOnMonthlyAvg.replace('{price}', price).replace('{count}', count).replace('{years}', years);
+    }
+    
+    if (reason.includes('Price is near its yearly high and expected to rise')) {
+        return t.recPriceHigh + ' ' + reason.replace(/Price is near its yearly high and expected to rise[^.]*\./, '').trim();
+    }
+    if (reason.includes('Price is at its yearly high')) return t.recPriceHighMax;
+    if (reason.includes('Price is near yearly low and expected to rise')) return t.recPriceLow;
+    if (reason.includes('Price expected to rise significantly')) return t.recRiseSignificant;
+    if (reason.includes('Price expected to rise by')) return t.recRiseModerate;
+    if (reason.includes('Price expected to drop significantly') || reason.includes('Price expected to drop by')) return t.recDropSignificant;
+    if (reason.includes('Price expected to decrease slightly')) return t.recDropModerate;
+    if (reason.includes('Market is volatile') && reason.includes('swing')) return t.recVolatile;
+    if (reason.includes('Market is moderately volatile')) return t.recModerateVolatile;
+    if (reason.includes('stable but near yearly high')) return t.recStableHigh;
+    if (reason.includes('stable but near yearly low')) return t.recStableLow;
+    if (reason.includes('Prices are stable')) return t.recStable;
+    if (reason.includes('reasonable choice')) return t.recReasonable;
+    if (reason.includes('Insufficient data')) return t.recInsufficient;
+    
+    return reason;
+}
+
+// ============================================================
+// UPDATE MODEL INSIGHTS
+// ============================================================
+function updateModelInsights(data) {
+    var t = translations[currentLang];
+    
+    if (!data || !data.model_predictions) {
+        document.getElementById('insightBestModelValue').textContent = '—';
+        document.getElementById('insightLowestRMSEValue').textContent = '—';
+        document.getElementById('insightLowestMAEValue').textContent = '—';
+        document.getElementById('insightModelsWorkingValue').textContent = '—';
+        return;
+    }
+
+    var modelKeys = ['linear_regression', 'random_forest', 'xgboost', 'lstm', 'arima'];
+    var modelLabels = {
+        'linear_regression': 'LR',
+        'random_forest': 'RF',
+        'xgboost': 'XGB',
+        'lstm': 'LSTM',
+        'arima': 'ARIMA'
+    };
+    
+    var bestRMSE = Infinity;
+    var bestMAE = Infinity;
+    var bestModel = '';
+    var modelsWorking = 0;
+
+    modelKeys.forEach(function(key) {
+        var price = data.model_predictions[key];
+        var metrics = data.model_metrics ? data.model_metrics[key] : null;
+        var isValid = price !== null && price !== undefined && !isNaN(price) && price > 0;
+        
+        if (isValid) modelsWorking++;
+        
+        if (metrics && metrics.rmse && metrics.rmse > 0 && metrics.rmse < bestRMSE) {
+            bestRMSE = metrics.rmse;
+            bestModel = modelLabels[key] || key;
+        }
+        if (metrics && metrics.mae && metrics.mae > 0 && metrics.mae < bestMAE) {
+            bestMAE = metrics.mae;
+        }
+    });
+
+    document.getElementById('insightBestModelValue').textContent = bestModel || '—';
+    document.getElementById('insightLowestRMSEValue').textContent = bestRMSE !== Infinity ? '₹' + Number(bestRMSE).toFixed(0) : '—';
+    document.getElementById('insightLowestMAEValue').textContent = bestMAE !== Infinity ? '₹' + Number(bestMAE).toFixed(0) : '—';
+    document.getElementById('insightModelsWorkingValue').textContent = modelsWorking + ' of 5';
+}
+
+// ============================================================
+// RENDER 5-MONTH FORECAST TABLE - 2 COLUMNS ONLY
+// ============================================================
+function renderForecastTable(forecastData) {
+    var wrapper = document.getElementById('forecastTableWrapper');
+    var tbody = document.getElementById('forecastTableBody');
+    if (!wrapper || !tbody) return;
+
+    if (!forecastData || !forecastData.months || !forecastData.months.length) {
+        wrapper.style.display = 'none';
+        return;
+    }
+
+    tbody.innerHTML = '';
+
+    forecastData.months.forEach(function(row, idx) {
+        var tr = document.createElement('tr');
+        if (idx === 0) tr.className = 'current-month';
+
+        var monthTd = document.createElement('td');
+        monthTd.className = 'month-cell';
+        var monthLabel = getMonthName(row.month) || row.month_name;
+        monthTd.textContent = monthLabel;
+        tr.appendChild(monthTd);
+
+        var priceTd = document.createElement('td');
+        priceTd.className = 'price-cell';
+        priceTd.textContent = row.predicted_price ? '₹' + Number(row.predicted_price).toFixed(2) : '—';
+        tr.appendChild(priceTd);
+
+        tbody.appendChild(tr);
+    });
+
+    wrapper.style.display = 'block';
+}
+
+// ============================================================
+// SET LANGUAGE FUNCTION
+// ============================================================
+function setLanguage(lang) {
+    currentLang = lang;
+    
+    var enBtn = document.getElementById('langEn');
+    var knBtn = document.getElementById('langKn');
+    if (enBtn) enBtn.className = lang === 'en' ? 'active' : '';
+    if (knBtn) knBtn.className = lang === 'kn' ? 'active' : '';
+    
+    var t = translations[lang];
+    if (!t) return;
+    
+    var elements = {
+        'logoSub': t.logoSub,
+        'logoutBtn': t.logout,
+        'compareNavLabel': t.compareNav,
+        'pageTitle': t.pageTitle,
+        'pageSubtitle': t.pageSubtitle,
+        'selectionLabel': t.selectionLabel,
+        'commodityLabel': t.commodityLabel,
+        'marketLabel': t.marketLabel,
+        'monthLabel': t.monthLabel,
+        'predictLabel': t.predictLabel,
+        'priceLabel': t.currentPrice,
+        'predLabel': t.predictedPrice,
+        'changeLabel': t.expectedChange,
+        'confLabel': t.confidence,
+        'insightBestModel': t.insightBestModel,
+        'insightLowestRMSE': t.insightLowestRMSE,
+        'insightLowestMAE': t.insightLowestMAE,
+        'insightModelsWorking': t.insightModelsWorking,
+        'viewModelsLabel': t.viewModelsLabel,
+        'dataPointsLabel': t.dataPointsLabel,
+        'seasonalAvgLabel': t.seasonalAvgLabel,
+        'modelsWorkingLabel': t.modelsWorkingLabel,
+        'recordCountLabel': t.recordsLabel,
+        'chart365Label': t.chart365Label,
+        'chartYearlyLabel': t.chartYearlyLabel,
+        'refreshLabel': t.refreshLabel,
+        'forecastTableTitle': t.forecastTableTitle,
+        'forecastMonthHeader': t.forecastMonthHeader,
+        'forecastPriceHeader': t.forecastPriceHeader
+    };
+    
+    for (var id in elements) {
+        if (elements.hasOwnProperty(id)) {
+            var el = document.getElementById(id);
+            if (el) {
+                if (id === 'pageTitle') {
+                    el.innerHTML = elements[id];
+                } else if (id === 'logoutBtn' || id === 'compareNavLabel') {
+                    el.innerHTML = elements[id];
+                } else {
+                    el.textContent = elements[id];
+                }
+            }
+        }
+    }
+    
+    if (!commoditySelect.value) {
+        var marketEl = document.getElementById('market');
+        if (marketEl) {
+            marketEl.innerHTML = '<option value="">' + t.selectCommodity + '</option>';
+        }
+    }
+
+    localStorage.setItem('krishisense_lang', lang);
+    
+    if (monthSelect.value) {
+        var monthBadge = document.getElementById('monthBadge');
+        if (monthBadge) {
+            monthBadge.textContent = getMonthName(monthSelect.value);
+        }
+    }
+    
+    if (resultBox.classList.contains('visible') && currentPredictionData) {
+        updateDynamicContent(currentPredictionData);
+        updateModelInsights(currentPredictionData);
+    }
+
+    if (currentForecastData) {
+        renderForecastTable(currentForecastData);
+    }
+}
+
+// ============================================================
+// UPDATE DYNAMIC CONTENT
+// ============================================================
+function updateDynamicContent(data) {
+    var t = translations[currentLang];
+    if (!data) return;
+    
+    var priceLabel = document.getElementById('priceLabel');
+    if (priceLabel) {
+        if (data.is_monthly) {
+            priceLabel.textContent = t.monthlyAvgPrice;
+        } else {
+            priceLabel.textContent = t.currentPrice;
+        }
+    }
+    
+    var badge = document.getElementById('recommendationBadge');
+    if (badge) {
+        var rec = (data.recommendation || '').toLowerCase();
+        if (rec === 'sell') badge.textContent = t.sell;
+        else if (rec === 'store') badge.textContent = t.store;
+        else if (rec === 'wait') badge.textContent = t.wait;
+        else badge.textContent = data.recommendation || '—';
+    }
+    
+    var resultDate = document.getElementById('resultDate');
+    if (resultDate && data) {
+        if (data.is_monthly) {
+            var monthName = getMonthName(data.selected_month) || data.selected_month;
+            resultDate.textContent = t.monthlyAvg + ' (' + monthName + ')';
+        } else {
+            resultDate.textContent = t.lastUpdated + ': ' + data.last_date;
+        }
+    }
+    
+    var reasonBox = document.getElementById('reasonText');
+    if (reasonBox && data.reason) {
+        var translatedReason = translateRecommendation(data.reason, data);
+        var finalReason = translatedReason;
+        if (data.seasonal_insight) {
+            var seasonalTranslated = translateRecommendation(data.seasonal_insight, data);
+            finalReason = translatedReason + ' <span class="seasonal-tip">' + seasonalTranslated + '</span>';
+        }
+        reasonBox.innerHTML = finalReason;
+    }
+}
+
+// ============================================================
+// LOAD MARKETS WHEN COMMODITY CHANGES
+// ============================================================
+commoditySelect.addEventListener('change', function() {
+    var commodity = this.value;
+    var t = translations[currentLang];
+    
+    marketSelect.disabled = true;
+    marketSelect.innerHTML = '<option value="">' + t.loadingMarkets + '</option>';
+    predictBtn.disabled = true;
+    resultBox.classList.remove('visible');
+    errorMsg.classList.remove('visible');
+    if (statusMsg) statusMsg.textContent = '';
+    currentPredictionData = null;
+    currentForecastData = null;
+    var forecastWrapperReset = document.getElementById('forecastTableWrapper');
+    if (forecastWrapperReset) forecastWrapperReset.style.display = 'none';
+
+    if (!commodity) {
+        marketSelect.innerHTML = '<option value="">' + t.selectCommodity + '</option>';
+        return;
+    }
+
+    fetch('/api/markets/' + encodeURIComponent(commodity))
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            marketSelect.innerHTML = '<option value="">— Select —</option>';
+            if (Array.isArray(data) && data.length) {
+                data.forEach(function(m) {
+                    var opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    marketSelect.appendChild(opt);
+                });
+                marketSelect.disabled = false;
+            } else {
+                marketSelect.innerHTML = '<option value="">' + t.noMarkets + '</option>';
+            }
+        })
+        .catch(function() {
+            marketSelect.innerHTML = '<option value="">Error loading markets</option>';
+        });
+});
+
+// ============================================================
+// ENABLE PREDICT BUTTON
+// ============================================================
+function checkSelections() {
+    predictBtn.disabled = !(commoditySelect.value && marketSelect.value && monthSelect.value);
+}
+
+marketSelect.addEventListener('change', checkSelections);
+monthSelect.addEventListener('change', checkSelections);
+
+// ============================================================
+// MONTH CHANGE
+// ============================================================
+monthSelect.addEventListener('change', function() {
+    var month = this.value;
+    var monthName = getMonthName(month) || (currentLang === 'kn' ? 'ತಿಂಗಳು ಆಯ್ಕೆಮಾಡಿ' : 'Select Month');
+    document.getElementById('monthBadge').textContent = monthName;
+    
+    if (resultBox.classList.contains('visible') && commoditySelect.value && marketSelect.value) {
+        loadMonthlyOnly();
+    }
+    checkSelections();
+});
+
+// ============================================================
+// LOAD MONTHLY DATA ONLY
+// ============================================================
+function loadMonthlyOnly() {
+    var commodity = commoditySelect.value;
+    var market = marketSelect.value;
+    var month = monthSelect.value;
+    var t = translations[currentLang];
+
+    if (!commodity || !market || !month) return;
+
+    var statsEl = document.getElementById('monthlyStats');
+    statsEl.innerHTML = '⏳ ' + t.loadingYearlyData;
+    statsEl.style.color = 'var(--text-muted)';
+
+    var cacheBuster = new Date().getTime();
+    fetch('/api/historical-price?commodity=' + encodeURIComponent(commodity) + 
+          '&market=' + encodeURIComponent(market) + 
+          '&month=' + encodeURIComponent(month) + 
+          '&_=' + cacheBuster)
+        .then(function(res) {
+            if (!res.ok) {
+                return res.json().then(function(data) {
+                    throw new Error(data.error || 'Failed to fetch data');
+                });
+            }
+            return res.json();
+        })
+        .then(function(monthlyData) {
+            renderMonthlyChart(monthlyData, month);
+        })
+        .catch(function(err) {
+            var statsEl = document.getElementById('monthlyStats');
+            statsEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>' + err.message;
+            statsEl.style.color = '#c0392b';
+            renderMonthlyChart(null, month);
+        });
+}
+
+// ============================================================
+// FULL PREDICTION
+// ============================================================
+function loadFullPrediction() {
+    var commodity = commoditySelect.value;
+    var market = marketSelect.value;
+    var month = monthSelect.value;
+    var t = translations[currentLang];
+
+    if (!commodity || !market || !month) return;
+
+    predictBtn.disabled = true;
+    predictBtn.innerHTML = '<span class="spinner"></span> ' + t.runningModels;
+    resultBox.classList.remove('visible');
+    errorMsg.classList.remove('visible');
+    if (statusMsg) statusMsg.textContent = '';
+
+    var cacheBuster = new Date().getTime();
+
+    Promise.all([
+        fetch('/api/predict?commodity=' + encodeURIComponent(commodity) + 
+              '&market=' + encodeURIComponent(market) + 
+              '&month=' + encodeURIComponent(month)).then(function(r) { 
+                if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'Prediction failed'); });
+                return r.json(); 
+              }),
+        fetch('/api/historical-price?commodity=' + encodeURIComponent(commodity) + 
+              '&market=' + encodeURIComponent(market) + 
+              '&month=' + encodeURIComponent(month) + 
+              '&_=' + cacheBuster).then(function(r) { 
+                if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'Monthly data failed'); });
+                return r.json(); 
+              }),
+        fetch('/api/predict-months?commodity=' + encodeURIComponent(commodity) + 
+              '&market=' + encodeURIComponent(market) + 
+              '&month=' + encodeURIComponent(month)).then(function(r) { 
+                if (!r.ok) return null;
+                return r.json(); 
+              }).catch(function() { return null; })
+    ])
+    .then(function(responses) {
+        var data = responses[0];
+        var monthlyData = responses[1];
+        var forecastData = responses[2];
+        
+        currentPredictionData = data;
+        
+        displayPredictionResult(data);
+        renderMonthlyChart(monthlyData, month);
+        resultBox.classList.add('visible');
+        updateDynamicContent(data);
+        updateModelInsights(data);
+
+        if (forecastData && forecastData.months) {
+            currentForecastData = forecastData;
+            renderForecastTable(forecastData);
+        } else {
+            currentForecastData = null;
+            var forecastWrapper = document.getElementById('forecastTableWrapper');
+            if (forecastWrapper) forecastWrapper.style.display = 'none';
+        }
+    })
+    .catch(function(err) {
+        errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>' + err.message;
+        errorMsg.classList.add('visible');
+        resultBox.classList.remove('visible');
+    })
+    .finally(function() {
+        predictBtn.disabled = false;
+        predictBtn.innerHTML = '<i class="fas fa-rocket"></i> ' + t.predictLabel;
+    });
+}
+
+// ============================================================
+// DISPLAY PREDICTION RESULT
+// ============================================================
+function displayPredictionResult(data) {
+    var t = translations[currentLang];
+    
+    document.getElementById('resultTitle').textContent = data.commodity + ' @ ' + data.market;
+    
+    var isMonthly = data.is_monthly || false;
+    
+    if (isMonthly) {
+        var monthName = getMonthName(data.selected_month) || data.selected_month;
+        document.getElementById('resultDate').textContent = t.monthlyAvg + ' (' + monthName + ')';
+        document.getElementById('priceLabel').textContent = t.monthlyAvgPrice;
+        
+        if (data.monthly_stats && data.monthly_stats.count) {
+            document.getElementById('recordCount').textContent = data.monthly_stats.count;
+            document.getElementById('monthlyRecordInfo').style.display = 'inline';
+        }
+    } else {
+        document.getElementById('resultDate').textContent = t.lastUpdated + ': ' + data.last_date;
+        document.getElementById('priceLabel').textContent = t.currentPrice;
+        document.getElementById('monthlyRecordInfo').style.display = 'none';
+    }
+
+    document.getElementById('lastPrice').textContent = data.last_price ? '₹' + Number(data.last_price).toFixed(2) : '—';
+    
+    var predictedPrice = data.predicted_price;
+    if (predictedPrice && !isNaN(predictedPrice)) {
+        document.getElementById('predictedPrice').textContent = '₹' + Number(predictedPrice).toFixed(2);
+    } else {
+        document.getElementById('predictedPrice').textContent = '—';
+    }
+    
+    var change = data.change_percent;
+    var changeEl = document.getElementById('changePercent');
+    if (change !== undefined && change !== null && !isNaN(change)) {
+        var sign = change > 0 ? '+' : '';
+        changeEl.textContent = sign + Number(change).toFixed(1) + '%';
+        changeEl.className = 'value';
+        if (change > 0.5) changeEl.classList.add('green');
+        else if (change < -0.5) changeEl.classList.add('red');
+        else changeEl.classList.add('gold');
+    } else {
+        changeEl.textContent = '—';
+    }
+    
+    document.getElementById('confidenceLevel').textContent = data.confidence || '—';
+
+    document.getElementById('dataPoints').textContent = data.data_points || '—';
+    document.getElementById('seasonalAvg').textContent = data.seasonal_comparison && data.seasonal_comparison.avg_seasonal ? 
+        '₹' + Number(data.seasonal_comparison.avg_seasonal).toFixed(2) : '—';
+    
+    var totalModels = data.total_models || 5;
+    document.getElementById('modelsWorking').textContent = data.models_working !== undefined ? 
+        data.models_working + ' of ' + totalModels : '—';
+
+    // ============================================================
+    // 365-Day Chart
+    // ============================================================
+    var canvas = document.getElementById('priceChart');
+    if (priceChart) {
+        priceChart.destroy();
+        priceChart = null;
+    }
+
+    if (data.history && data.history.prices && data.history.prices.length > 1) {
+        var prices = data.history.prices;
+        var labels = data.history.dates.map(function(d) { return formatDateForChart(d); });
+
+        var predictionData = prices.slice(0, -1);
+        if (predictedPrice && !isNaN(predictedPrice)) {
+            predictionData.push(predictedPrice);
+        } else {
+            predictionData.push(prices[prices.length - 1]);
+        }
+
+        var datasets = [
+            {
+                label: 'Historical Price',
+                data: prices,
+                borderColor: '#2c7a5a',
+                backgroundColor: 'rgba(44,122,90,0.06)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 0.5,
+                pointBackgroundColor: '#2c7a5a',
+                borderWidth: 2
+            },
+            {
+                label: 'Predicted Price',
+                data: predictionData,
+                borderColor: '#b9822a',
+                backgroundColor: 'rgba(185,130,42,0.05)',
+                borderDash: [6, 4],
+                fill: false,
+                tension: 0.3,
+                pointRadius: function(context) {
+                    return context.dataIndex === predictionData.length - 1 ? 6 : 0.5;
+                },
+                pointBackgroundColor: function(context) {
+                    return context.dataIndex === predictionData.length - 1 ? '#b9822a' : '#b9822a';
+                },
+                pointBorderColor: '#b9822a',
+                pointBorderWidth: 2
+            }
+        ];
+
+        if (isMonthly && data.last_price) {
+            datasets.push({
+                label: 'Monthly Avg: ₹' + Number(data.last_price).toFixed(0),
+                data: Array(labels.length).fill(data.last_price),
+                borderColor: '#d9534f',
+                borderDash: [2, 4],
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false
+            });
+        }
+
+        var ctx = canvas.getContext('2d');
+        priceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { 
+                            boxWidth: 12, 
+                            padding: 12, 
+                            font: { size: 11, family: "'Inter', sans-serif", weight: '500' },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(26,58,42,0.92)',
+                        titleFont: { family: "'Inter', sans-serif", weight: '600' },
+                        bodyFont: { family: "'Inter', sans-serif" },
+                        cornerRadius: 8,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ₹' + Number(context.parsed.y).toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { display: false },
+                        ticks: { 
+                            maxTicksLimit: 15,
+                            font: { size: 9, family: "'Inter', sans-serif" },
+                            maxRotation: 45,
+                            minRotation: 45,
+                            autoSkip: true,
+                            color: '#6b6455'
+                        }
+                    },
+                    y: { 
+                        grid: { color: 'rgba(43,42,37,0.05)' },
+                        ticks: { 
+                            callback: function(value) { return '₹' + Number(value).toFixed(0); },
+                            font: { size: 10, family: "'Inter', sans-serif" },
+                            color: '#6b6455'
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// ============================================================
+// RENDER MONTHLY CHART - ALL YEARS (2015-2024)
+// ============================================================
+function renderMonthlyChart(monthlyData, month) {
+    var canvas = document.getElementById('monthlyChart');
+    var t = translations[currentLang];
+    
+    if (monthlyChartInstance) {
+        monthlyChartInstance.destroy();
+        monthlyChartInstance = null;
+    }
+
+    var monthName = getMonthName(month) || (currentLang === 'kn' ? 'ತಿಂಗಳು ಆಯ್ಕೆಮಾಡಿ' : 'Select Month');
+    document.getElementById('monthBadge').textContent = monthName;
+
+    if (!monthlyData || !monthlyData.data || monthlyData.data.length === 0) {
+        var statsEl = document.getElementById('monthlyStats');
+        statsEl.innerHTML = t.noHistoricalData;
+        statsEl.style.color = 'var(--text-muted)';
+        
+        var ctx = canvas.getContext('2d');
+        monthlyChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['No Data'],
+                datasets: [{
+                    label: 'Price',
+                    data: [0],
+                    backgroundColor: 'rgba(200,200,200,0.3)',
+                    borderColor: '#ccc',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { display: false } },
+                    y: { grid: { display: false }, ticks: { display: false } }
+                }
+            }
+        });
+        return;
+    }
+
+    var yearlyData = monthlyData.data.slice().sort(function(a, b) {
+        return parseInt(a.year) - parseInt(b.year);
+    });
+    
+    var years = yearlyData.map(function(d) { return d.year; });
+    var prices = yearlyData.map(function(d) { return d.price; });
+    
+    var avgPrice = monthlyData.stats ? monthlyData.stats.avg : 0;
+    var minPrice = monthlyData.stats ? monthlyData.stats.min : 0;
+    var maxPrice = monthlyData.stats ? monthlyData.stats.max : 0;
+
+    var barColors = prices.map(function(p) { return getBarColor(p, avgPrice); });
+
+    var ctx = canvas.getContext('2d');
+    monthlyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: years,
+            datasets: [
+                {
+                    label: 'Avg Price (₹)',
+                    data: prices,
+                    backgroundColor: barColors,
+                    borderColor: barColors.map(function(c) { return c.replace('0.85', '1'); }),
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    barPercentage: 0.7
+                },
+                {
+                    label: 'Overall Avg: ₹' + Number(avgPrice).toFixed(0),
+                    data: Array(prices.length).fill(avgPrice),
+                    borderColor: '#2c7a5a',
+                    borderDash: [6, 4],
+                    borderWidth: 2,
+                    type: 'line',
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: { 
+                        boxWidth: 14, 
+                        padding: 14, 
+                        font: { size: 11, family: "'Inter', sans-serif", weight: '500' },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(26,58,42,0.92)',
+                    titleFont: { family: "'Inter', sans-serif", weight: '600' },
+                    bodyFont: { family: "'Inter', sans-serif" },
+                    cornerRadius: 8,
+                    padding: 12,
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label + ' (' + monthName + ')';
+                        },
+                        label: function(context) {
+                            if (context.dataset.label.startsWith('Overall Avg')) {
+                                return 'Overall Average: ₹' + Number(context.parsed.y).toFixed(2);
+                            }
+                            var yearData = yearlyData[context.dataIndex];
+                            var label = 'Price: ₹' + Number(context.parsed.y).toFixed(2);
+                            if (yearData && yearData.record_count) {
+                                label += ' | ' + yearData.record_count + ' records';
+                                if (yearData.min && yearData.max) {
+                                    label += ' | Range: ₹' + yearData.min + ' - ₹' + yearData.max;
+                                }
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { 
+                        font: { size: 12, family: "'Inter', sans-serif", weight: '600' },
+                        color: '#4a6a5a',
+                        autoSkip: false,
+                        maxRotation: 0
+                    }
+                },
+                y: {
+                    grid: { color: 'rgba(43,42,37,0.06)' },
+                    ticks: {
+                        callback: function(value) { return '₹' + Number(value).toFixed(0); },
+                        font: { size: 10, family: "'Inter', sans-serif" },
+                        color: '#6b6455'
+                    }
+                }
+            }
+        }
+    });
+
+    var statsEl = document.getElementById('monthlyStats');
+    var trendIcon = '';
+    if (prices.length >= 2) {
+        var lastPrice = prices[prices.length - 1];
+        var firstPrice = prices[0];
+        if (lastPrice > firstPrice * 1.05) trendIcon = '<i class="fa-solid fa-arrow-trend-up" style="color:#10b981;margin-right:4px;"></i>';
+        else if (lastPrice < firstPrice * 0.95) trendIcon = '<i class="fa-solid fa-arrow-trend-down" style="color:#ef4444;margin-right:4px;"></i>';
+        else trendIcon = '<i class="fa-solid fa-arrow-right" style="color:#64748b;margin-right:4px;"></i>';
+    }
+    
+    statsEl.innerHTML = trendIcon + '<i class="fa-solid fa-chart-simple" style="color:var(--gold);margin-right:3px;"></i> Avg: ₹' + Number(avgPrice).toFixed(2) + 
+                       ' | <i class="fa-solid fa-arrow-up" style="color:#10b981;margin-right:3px;"></i> High: ₹' + Number(maxPrice).toFixed(2) + 
+                       ' | <i class="fa-solid fa-arrow-down" style="color:#ef4444;margin-right:3px;"></i> Low: ₹' + Number(minPrice).toFixed(2) +
+                       ' | <i class="fa-solid fa-database" style="color:#64748b;margin-right:3px;"></i> ' + monthlyData.stats.count + ' total records' +
+                       ' | <i class="fa-solid fa-calendar" style="color:#64748b;margin-right:3px;"></i> ' + yearlyData.length + ' years' +
+                       ' | <i class="fa-solid fa-location-dot" style="color:var(--gold);margin-right:3px;"></i> ' + monthlyData.market;
+    statsEl.style.color = 'var(--text-muted)';
+    
+    console.log('Monthly chart showing ALL YEARS:', years.join(', '));
+}
+
+// ============================================================
+// REFRESH MONTHLY BUTTON
+// ============================================================
+refreshMonthlyBtn.addEventListener('click', function() {
+    var t = translations[currentLang];
+    
+    if (resultBox.classList.contains('visible') && commoditySelect.value && marketSelect.value && monthSelect.value) {
+        document.getElementById('monthlyStats').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i>' + t.loadingYearlyData;
+        loadMonthlyOnly();
+    } else {
+        var statsEl = document.getElementById('monthlyStats');
+        statsEl.innerHTML = t.runPredictionFirst;
+        statsEl.style.color = 'var(--text-muted)';
+        
+        if (monthlyChartInstance) {
+            monthlyChartInstance.destroy();
+            monthlyChartInstance = null;
+        }
+    }
+});
+
+// ============================================================
+// PREDICT BUTTON EVENT
+// ============================================================
+predictBtn.addEventListener('click', loadFullPrediction);
+
+// ============================================================
+// INITIALIZE
+// ============================================================
+if (monthSelect.value) {
+    var monthName = getMonthName(monthSelect.value) || (currentLang === 'kn' ? 'ತಿಂಗಳು ಆಯ್ಕೆಮಾಡಿ' : 'Select Month');
+    document.getElementById('monthBadge').textContent = monthName;
+}
+
+// Auto-refresh when tab becomes visible
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && resultBox.classList.contains('visible') && 
+        commoditySelect.value && marketSelect.value && monthSelect.value) {
+        loadMonthlyOnly();
+    }
+});
+
+console.log('[KrishiSense] Dashboard loaded successfully');
+console.log('[KrishiSense] X-axis now shows full dates with year');
+console.log('[KrishiSense] Yearly comparison chart shows all years');
+console.log('[KrishiSense] Model insights active');
+console.log('[KrishiSense] Language translation enabled');
+console.log('[KrishiSense] Model comparison available');
+</script>
+
+
+
+<script src="{{ url_for('static', filename='js/lang-toggle.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+<script src="{{ url_for('static', filename='js/voice-assistant.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — KrishiSense</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a3d24">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="KrishiSense">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ============================================================
+           LOGIN PAGE - PREMIUM DESIGN (Updated)
+           ============================================================ */
+        
+        :root {
+            --primary: #1a3a2a;
+            --primary-dark: #0f2a1a;
+            --gold: #b9822a;
+            --gold-gradient: linear-gradient(135deg, #b9822a, #d4a040);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background:
+                radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.18), transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.18), transparent 45%),
+                linear-gradient(150deg, #041f12 0%, #08331e 35%, #0d4a2c 70%, #062a18 100%);
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at 20% 50%, rgba(185, 130, 42, 0.08) 0%, transparent 60%);
+            z-index: 0;
+            animation: pulseBg 8s ease-in-out infinite;
+        }
+
+        @keyframes pulseBg {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 24px;
+            padding: 48px 40px 40px;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .login-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-header .icon-wrapper {
+            display: inline-block;
+            padding: 4px;
+            border-radius: 50%;
+            margin-bottom: 12px;
+            border: 2px solid rgba(185, 130, 42, 0.35);
+            background: #ffffff;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        .auth-logo-img {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            object-fit: contain;
+            display: block;
+            background: #ffffff;
+        }
+
+        .login-header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1a2a3a;
+            margin-bottom: 2px;
+            letter-spacing: -0.5px;
+        }
+
+        .login-header h1 .gold {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-header .subtitle {
+            font-size: 0.95rem;
+            color: #6a7e8e;
+            font-weight: 400;
+        }
+
+        .login-header .divider {
+            width: 60px;
+            height: 3px;
+            background: var(--gold-gradient);
+            margin: 14px auto 0;
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #2d3d4d;
+            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group label .required {
+            color: #d9534f;
+            margin-left: 2px;
+        }
+
+        .form-group .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-group .input-wrapper .input-icon {
+            position: absolute;
+            left: 14px;
+            font-size: 1.1rem;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px 12px 46px;
+            border: 2px solid #e8ecf0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: rgba(248, 250, 252, 0.8);
+            color: #1a2a3a;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #b9822a;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(185, 130, 42, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #9aabbb;
+            font-size: 0.9rem;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a3a2a, #2d5a3e);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(26, 58, 42, 0.25);
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .btn-login:hover::before {
+            left: 100%;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(26, 58, 42, 0.35);
+        }
+
+        .btn-login:active {
+            transform: translateY(0px);
+        }
+
+        .btn-login .btn-icon {
+            margin-right: 8px;
+        }
+
+        .auth-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #6a7e8e;
+        }
+
+        .auth-link a {
+            color: #b9822a;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+
+        .auth-link a:hover {
+            color: #8a6620;
+            text-decoration: underline;
+        }
+
+        .auth-footnote {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.72rem;
+            color: #9aabbb;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            padding-top: 20px;
+            line-height: 1.4;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: rgba(46, 125, 50, 0.1);
+            color: #2e7d32;
+            border: 1px solid rgba(46, 125, 50, 0.2);
+        }
+
+        .alert-danger {
+            background: rgba(198, 40, 40, 0.08);
+            color: #c62828;
+            border: 1px solid rgba(198, 40, 40, 0.15);
+        }
+
+        .alert-info {
+            background: rgba(13, 71, 161, 0.08);
+            color: #0d47a1;
+            border: 1px solid rgba(13, 71, 161, 0.15);
+        }
+
+        .alert-warning {
+            background: rgba(245, 127, 23, 0.08);
+            color: #f57f17;
+            border: 1px solid rgba(245, 127, 23, 0.15);
+        }
+
+        @media (max-width: 520px) {
+            .login-card {
+                padding: 32px 24px 28px;
+                border-radius: 16px;
+            }
+
+            .login-header h1 {
+                font-size: 1.6rem;
+            }
+
+            .login-header .icon-wrapper {
+                padding: 12px;
+            }
+
+            .login-header .icon-wrapper .logo-icon {
+                font-size: 2.2rem;
+            }
+
+            .form-group input {
+                padding: 10px 14px 10px 40px;
+                font-size: 0.9rem;
+            }
+
+            .btn-login {
+                padding: 12px;
+                font-size: 0.95rem;
+            }
+
+            body {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .login-card {
+                padding: 24px 16px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 1.3rem;
+            }
+
+            .form-group input {
+                padding: 8px 12px 8px 36px;
+                font-size: 0.85rem;
+            }
+
+            .login-header .icon-wrapper .logo-icon {
+                font-size: 1.8rem;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #b9822a;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8a6620;
+        }
+
+        /* ========== GOOGLE TRANSLATE WIDGET ========== */
+        .gt-widget {
+            display: flex;
+            justify-content: center;
+            margin: 0 auto 20px;
+            width: fit-content;
+        }
+        .gt-widget .goog-te-gadget-simple {
+            background: rgba(26, 58, 42, 0.06) !important;
+            border: none !important;
+            border-radius: 30px !important;
+            padding: 6px 16px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.72rem !important;
+            transition: background 0.2s ease;
+        }
+        .gt-widget .goog-te-gadget-simple:hover {
+            background: rgba(185, 130, 42, 0.16) !important;
+        }
+        body > .skiptranslate.goog-te-gadget-icon,
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+    </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+    <div class="login-card">
+
+        <div class="lang-toggle" id="langToggle">
+          <button type="button" class="lang-btn active" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
+        </div>
+
+        <div class="login-header">
+            <div class="icon-wrapper">
+                <img src="{{ url_for('static', filename='img/logo.png') }}?v=3" alt="KrishiSense" class="auth-logo-img" onerror="this.onerror=null; this.src='/static/logo.png?v=3';">
+            </div>
+            <h1><span class="gold">Krishi</span>Sense</h1>
+            <p class="subtitle" id="loginSubtitle">Smart Farming | Better Tomorrow</p>
+            <div class="divider"></div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {% if category == 'success' %}<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i>
+                        {% elif category == 'danger' %}<i class="fa-solid fa-circle-xmark" style="margin-right:6px;"></i>
+                        {% elif category == 'warning' %}<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>
+                        {% else %}<i class="fa-solid fa-circle-info" style="margin-right:6px;"></i>{% endif %}
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="username"><span id="usernameLabel">Username</span> <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fa-solid fa-user"></i></span>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password"><span id="passwordLabel">Password</span> <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <span class="btn-icon"><i class="fa-solid fa-right-to-bracket"></i></span> <span id="signInLabel">Sign In</span>
+            </button>
+        </form>
+
+        <div class="auth-link">
+            <span id="noAccountLabel">Don't have an account?</span> <a href="{{ url_for('register') }}" id="registerLinkLabel">Register here</a>
+        </div>
+
+        <div class="auth-footnote" id="footnoteLabel">
+            Smart Decision Support System for Agricultural Price Prediction
+        </div>
+
+    </div>
+</div>
+
+
+
+<script src="{{ url_for('static', filename='js/lang-toggle.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+</body>
+</html>

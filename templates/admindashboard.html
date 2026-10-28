@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSense - Admin Model Training</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a3d24">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="KrishiSense">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice-assistant.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* ============================================================
+           ADMIN DASHBOARD - PREMIUM DESIGN
+           ============================================================ */
+        
+        :root {
+            --primary: #0a3d24;
+            --primary-light: #15803d;
+            --primary-dark: #062a18;
+            --gold: #f59e0b;
+            --gold-light: #fbbf24;
+            --gold-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+            --light-green: #f0fdf4;
+            --light-green-dark: #dcfce7;
+            --dark: #0f172a;
+            --dark-soft: #334155;
+            --text-muted: #64748b;
+            --surface-border: #e2e8f0;
+            --shadow-premium: 0 10px 25px -5px rgba(10, 61, 36, 0.07), 0 8px 10px -6px rgba(10, 61, 36, 0.04);
+            --shadow-hover: 0 20px 35px -5px rgba(10, 61, 36, 0.12), 0 10px 10px -5px rgba(10, 61, 36, 0.05);
+            --radius-premium: 20px;
+            --radius-card: 14px;
+            --transition-premium: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(1000px circle at 10% 10%, rgba(16, 185, 129, 0.08), transparent 60%),
+                radial-gradient(800px circle at 90% 80%, rgba(245, 158, 11, 0.07), transparent 50%),
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background-attachment: fixed;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ========== TOP BAR ========== */
+        .topbar-admin {
+            background: #0a3d24;
+            border-bottom: 3px solid var(--gold);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .topbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .topbar-left .logo-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .topbar-left .logo-text .gold { color: var(--gold); }
+
+        .topbar-left .admin-badge {
+            background: var(--gold-gradient);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .gt-widget {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 3px 10px;
+        }
+        .gt-widget .goog-te-gadget-simple {
+            background: transparent !important;
+            border: none !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.7rem !important;
+            color: #fff !important;
+        }
+        .gt-widget .goog-te-gadget-simple .goog-te-menu-value span {
+            color: #fff !important;
+        }
+        body > .skiptranslate.goog-te-gadget-icon,
+        .goog-te-banner-frame { display: none !important; }
+        body { top: 0 !important; }
+
+        .topbar-right .admin-welcome {
+            color: #cdd8c9;
+            font-size: 0.9rem;
+        }
+
+        .topbar-right .admin-welcome strong {
+            color: #ffffff;
+        }
+
+        .btn-back {
+            background: transparent;
+            color: #cdd8c9;
+            padding: 6px 18px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.15);
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            transition: var(--transition-premium);
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-back:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--gold);
+            color: #ffffff;
+        }
+
+        /* ========== MAIN CONTAINER ========== */
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px 80px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            overflow-y: auto;
+        }
+
+        /* ========== PAGE HEADER ========== */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            letter-spacing: -0.5px;
+        }
+
+        .page-header h1 .highlight {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-top: 4px;
+        }
+
+        /* ========== GRID LAYOUT ========== */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+        }
+
+        .section-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .section-step .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--gold-gradient);
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        /* ========== CARDS ========== */
+        .card {
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-premium);
+            padding: 28px 32px;
+            border: 1px solid rgba(255,255,255,0.4);
+            border-top: 3px solid var(--gold);
+            box-shadow: var(--shadow-premium);
+            transition: var(--transition-premium);
+        }
+
+        .card:hover {
+            box-shadow: 0 24px 70px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(26,58,42,0.08);
+        }
+
+        .card-title i {
+            color: var(--gold);
+            font-size: 1.05rem;
+        }
+
+        /* ========== PROGRESS SECTION ========== */
+        .progress-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .progress-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+        }
+
+        /* Horizontal Progress Bar */
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .progress-bar-horizontal {
+            width: 100%;
+            height: 80px;
+            background: rgba(26,58,42,0.08);
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            border: 3px solid rgba(26,58,42,0.12);
+            box-shadow: inset 0 3px 14px rgba(0,0,0,0.08);
+        }
+
+        .progress-fill-horizontal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: var(--gold-gradient);
+            border-radius: 40px;
+            transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-fill-horizontal .progress-text-inside {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.8rem;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            white-space: nowrap;
+        }
+
+        .progress-fill-horizontal .progress-text-inside.visible {
+            opacity: 1;
+        }
+
+        .progress-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .progress-percentage {
+            font-size: 2.4rem;
+            font-weight: 900;
+            color: var(--primary-dark);
+            text-align: center;
+        }
+
+        .progress-percentage .percent-symbol {
+            color: var(--gold);
+        }
+
+        .progress-status {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-align: center;
+            min-height: 24px;
+            font-weight: 500;
+        }
+
+        .progress-status .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-dot.idle {
+            background: #95a5a6;
+        }
+
+        .status-dot.running {
+            background: var(--gold);
+            animation: pulse-dot 1s ease-in-out infinite;
+        }
+
+        .status-dot.complete {
+            background: #2c7a5a;
+        }
+
+        .status-dot.error {
+            background: #d9534f;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        /* ========== FILE DROP ZONE ========== */
+        .drop-zone {
+            border: 3px dashed rgba(185,130,42,0.3);
+            border-radius: var(--radius-card);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-premium);
+            background: rgba(255,255,255,0.4);
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--gold);
+            background: rgba(255,255,255,0.6);
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--gold);
+            background: rgba(185,130,42,0.08);
+            transform: scale(1.01);
+        }
+
+        .drop-zone .drop-icon {
+            font-size: 3rem;
+            color: var(--gold);
+            opacity: 0.5;
+        }
+
+        .drop-zone .drop-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .drop-zone .drop-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .drop-zone .drop-formats {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.5);
+            padding: 4px 16px;
+            border-radius: 20px;
+            margin-top: 4px;
+        }
+
+        .drop-zone input[type="file"] {
+            display: none;
+        }
+
+        /* File List */
+        .file-list {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.6);
+            border-radius: var(--radius-card);
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: var(--transition-premium);
+        }
+
+        .file-item:hover {
+            background: rgba(255,255,255,0.8);
+        }
+
+        .file-item .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-item .file-info i {
+            font-size: 1.4rem;
+            color: var(--gold);
+        }
+
+        .file-item .file-info .file-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--dark-soft);
+        }
+
+        .file-item .file-info .file-size {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .file-item .file-remove {
+            background: transparent;
+            border: none;
+            color: #d9534f;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: var(--transition-premium);
+        }
+
+        .file-item .file-remove:hover {
+            background: rgba(217,83,79,0.1);
+        }
+
+        .no-files {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 12px;
+        }
+
+        /* ========== MODELS LIST ========== */
+        .models-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .model-check-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.5);
+            border-radius: var(--radius-card);
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: var(--transition-premium);
+            flex-wrap: wrap;
+        }
+
+        .model-check-item:hover {
+            background: rgba(255,255,255,0.75);
+            border-color: rgba(185,130,42,0.25);
+        }
+
+        .model-check-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--gold);
+            cursor: pointer;
+        }
+
+        .model-check-item .model-icon {
+            font-size: 1.2rem;
+        }
+
+        .model-check-item .model-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--dark-soft);
+        }
+
+        .model-check-item .model-status {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 3px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .model-check-item .model-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-train-single {
+            background: transparent;
+            border: 1.5px solid var(--gold);
+            color: var(--gold);
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: var(--transition-premium);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-train-single:hover:not(:disabled) {
+            background: var(--gold-gradient);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .btn-train-single:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-train-single .mini-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(185,130,42,0.25);
+            border-radius: 50%;
+            border-top-color: var(--gold);
+            animation: spin 0.7s linear infinite;
+        }
+
+        .model-status.pending {
+            background: #f1f0e8;
+            color: #8a8a7a;
+        }
+
+        .model-status.trained {
+            background: #e8f5e9;
+            color: #2c7a5a;
+        }
+
+        .model-status.training {
+            background: #fff3e0;
+            color: #e65100;
+            animation: pulse-dot 1s ease-in-out infinite;
+        }
+
+        /* ========== TRAIN BUTTON ========== */
+        .btn-train {
+            width: 100%;
+            padding: 14px 32px;
+            background: var(--gold-gradient);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-card);
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: var(--transition-premium);
+            box-shadow: 0 4px 20px rgba(185,130,42,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-train:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 35px rgba(185,130,42,0.3);
+        }
+
+        .btn-train:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-train .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== LOG SECTION ========== */
+        .log-section {
+            margin-top: 16px;
+            background: rgba(26,58,42,0.04);
+            border-radius: var(--radius-card);
+            padding: 14px 18px;
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid rgba(26,58,42,0.06);
+        }
+
+        .log-section::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .log-section::-webkit-scrollbar-track {
+            background: rgba(26,58,42,0.04);
+            border-radius: 4px;
+        }
+
+        .log-section::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 4px;
+        }
+
+        .log-entry {
+            font-size: 0.8rem;
+            padding: 4px 0;
+            color: var(--dark-soft);
+            font-family: 'Courier New', monospace;
+            border-bottom: 1px solid rgba(26,58,42,0.04);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry .log-time {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            font-weight: 600;
+            min-width: 70px;
+        }
+
+        .log-entry .log-icon {
+            font-size: 0.8rem;
+        }
+
+        .log-entry .log-icon.success { color: #2c7a5a; }
+        .log-entry .log-icon.error { color: #d9534f; }
+        .log-entry .log-icon.info { color: var(--gold); }
+
+        .log-empty {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 12px;
+        }
+
+        /* ========== RESULTS TABLE ========== */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .results-table thead th {
+            text-align: left;
+            padding: 10px 14px;
+            background: rgba(26,58,42,0.06);
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+        }
+
+        .results-table thead th:first-child { border-radius: 8px 0 0 8px; }
+        .results-table thead th:last-child { border-radius: 0 8px 8px 0; }
+
+        .results-table tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(26,58,42,0.06);
+            color: var(--dark-soft);
+            font-size: 0.85rem;
+        }
+
+        .results-table tbody tr:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .results-table .model-cell {
+            font-weight: 700;
+        }
+
+        .accuracy-pill {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .accuracy-pill.high { background: #e8f5e9; color: #2c7a5a; }
+        .accuracy-pill.mid  { background: #fff3e0; color: #e65100; }
+        .accuracy-pill.low  { background: #fce4ec; color: #c62828; }
+
+        .results-table .sub-row td:first-child {
+            padding-left: 34px;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        .best-model-badge {
+            display: inline-block;
+            background: var(--gold-gradient);
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-left: 6px;
+        }
+
+        /* ========== CHART SECTION ========== */
+        .chart-container {
+            margin-top: 16px;
+            background: rgba(255,255,255,0.4);
+            border-radius: var(--radius-card);
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .chart-container .chart-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 200px !important;
+        }
+
+        /* ========== TOAST NOTIFICATION ========== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary-dark);
+            color: #fff;
+            padding: 16px 24px;
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-premium);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            max-width: 400px;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .toast.visible {
+            display: flex;
+        }
+
+        .toast.success {
+            border-left: 4px solid #2c7a5a;
+        }
+
+        .toast.error {
+            border-left: 4px solid #d9534f;
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--gold);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .topbar-inner {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 8px;
+            }
+
+            .admin-container {
+                padding: 20px 16px 40px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .progress-bar-horizontal {
+                height: 60px;
+            }
+
+            .progress-percentage {
+                font-size: 2rem;
+            }
+
+            .model-check-item .model-right {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .drop-zone {
+                padding: 24px 16px;
+                min-height: 140px;
+            }
+
+            .drop-zone .drop-icon {
+                font-size: 2.5rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.6rem;
+            }
+
+            .toast {
+                bottom: 16px;
+                right: 16px;
+                left: 16px;
+                max-width: none;
+            }
+
+            .chart-container canvas {
+                height: 160px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .topbar-left .logo-text {
+                font-size: 1.2rem;
+            }
+
+            .topbar-left .admin-badge {
+                font-size: 0.55rem;
+                padding: 3px 10px;
+            }
+
+            .progress-bar-horizontal {
+                height: 50px;
+            }
+
+            .progress-percentage {
+                font-size: 1.6rem;
+            }
+
+            .file-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .file-item .file-remove {
+                align-self: flex-end;
+            }
+
+            .results-table {
+                font-size: 0.75rem;
+            }
+
+            .results-table thead th,
+            .results-table tbody td {
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== TOP BAR ========== -->
+<header class="topbar-admin">
+    <div class="topbar-inner">
+        <div class="topbar-left" style="display:flex; align-items:center;">
+            <img src="{{ url_for('static', filename='img/logo.png') }}?v=3" alt="KrishiSense" style="width:40px; height:40px; border-radius:50%; margin-right:10px; background:#fff; padding:2px; box-shadow:0 2px 8px rgba(0,0,0,0.25); object-fit:contain;" onerror="this.onerror=null; this.src='/static/logo.png?v=3';">
+            <span class="logo-text"><span class="gold">Krishi</span>Sense</span>
+            <span class="admin-badge"><i class="fa-solid fa-crown" style="margin-right:4px;"></i>Admin</span>
+        </div>
+        <div class="topbar-right">
+            <div class="lang-toggle" id="langToggle">
+          <button type="button" class="lang-btn active" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
+        </div>
+            <span class="admin-welcome"><i class="fa-solid fa-user-shield" style="margin-right:4px;"></i>Hi, <strong>Admin</strong></span>
+            <a href="{{ url_for('model_insights') }}" class="btn-back"><i class="fas fa-chart-line"></i> Insights</a>
+            <a href="{{ url_for('dashboard') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- ========== MAIN CONTAINER ========== -->
+<div class="admin-container">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <h1><i class="fa-solid fa-gears" style="color:var(--gold);margin-right:8px;"></i><span class="highlight">Model Training</span> Console</h1>
+        <p>Upload your dataset, train models, and view performance metrics</p>
+    </div>
+
+    <!-- ========== ADMIN GRID ========== -->
+    <div class="admin-grid">
+
+        <!-- LEFT COLUMN: Upload & Models -->
+        <div>
+            <!-- Upload Dataset -->
+            <div class="card" style="margin-bottom: 28px;">
+                <div class="card-title">
+                    <span class="section-step"><span class="step-num">1</span></span>
+                    <i class="fas fa-upload"></i> Upload Dataset
+                </div>
+
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <div class="drop-title">Drop your CSV file here</div>
+                    <div class="drop-subtitle">or click to browse</div>
+                    <div class="drop-formats">Supported: .csv, .xlsx, .xls</div>
+                    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple>
+                </div>
+
+                <div class="file-list" id="fileList">
+                    <div class="no-files"><i class="fa-solid fa-folder-open" style="margin-right:6px;"></i>No files uploaded yet</div>
+                </div>
+            </div>
+
+            <!-- Select Models -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="section-step"><span class="step-num">2</span></span>
+                    <i class="fas fa-brain"></i> Select Models to Train
+                </div>
+
+                <div class="models-grid">
+                    <div class="model-check-item">
+                        <input type="checkbox" id="model_lr" checked>
+                        <span class="model-icon"><i class="fa-solid fa-chart-line" style="color:#0284c7;"></i></span>
+                        <span class="model-name">Linear Regression</span>
+                        <div class="model-right">
+                            <span class="model-status pending" id="status_lr">Pending</span>
+                            <button class="btn-train-single" id="trainbtn_lr" onclick="trainSingleModel('lr')">
+                                <i class="fas fa-play"></i> Train
+                            </button>
+                        </div>
+                    </div>
+                    <div class="model-check-item">
+                        <input type="checkbox" id="model_rf" checked>
+                        <span class="model-icon"><i class="fa-solid fa-tree" style="color:#15803d;"></i></span>
+                        <span class="model-name">Random Forest</span>
+                        <div class="model-right">
+                            <span class="model-status pending" id="status_rf">Pending</span>
+                            <button class="btn-train-single" id="trainbtn_rf" onclick="trainSingleModel('rf')">
+                                <i class="fas fa-play"></i> Train
+                            </button>
+                        </div>
+                    </div>
+                    <div class="model-check-item">
+                        <input type="checkbox" id="model_xgb" checked>
+                        <span class="model-icon"><i class="fa-solid fa-bolt" style="color:#f59e0b;"></i></span>
+                        <span class="model-name">XGBoost</span>
+                        <div class="model-right">
+                            <span class="model-status pending" id="status_xgb">Pending</span>
+                            <button class="btn-train-single" id="trainbtn_xgb" onclick="trainSingleModel('xgb')">
+                                <i class="fas fa-play"></i> Train
+                            </button>
+                        </div>
+                    </div>
+                    <div class="model-check-item">
+                        <input type="checkbox" id="model_lstm" checked>
+                        <span class="model-icon"><i class="fa-solid fa-brain" style="color:#7c3aed;"></i></span>
+                        <span class="model-name">LSTM</span>
+                        <div class="model-right">
+                            <span class="model-status pending" id="status_lstm">Pending</span>
+                            <button class="btn-train-single" id="trainbtn_lstm" onclick="trainSingleModel('lstm')">
+                                <i class="fas fa-play"></i> Train
+                            </button>
+                        </div>
+                    </div>
+                    <div class="model-check-item">
+                        <input type="checkbox" id="model_arima" checked>
+                        <span class="model-icon"><i class="fa-solid fa-wave-square" style="color:#0d9488;"></i></span>
+                        <span class="model-name">ARIMA</span>
+                        <div class="model-right">
+                            <span class="model-status pending" id="status_arima">Pending</span>
+                            <button class="btn-train-single" id="trainbtn_arima" onclick="trainSingleModel('arima')">
+                                <i class="fas fa-play"></i> Train
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 4px; padding: 10px 16px; background: rgba(255,255,255,0.4); border-radius: var(--radius-card); font-size: 0.8rem; color: var(--text-muted);">
+                    <i class="fas fa-circle-info" style="color: var(--gold);"></i>
+                    <span id="selectedModelsCount">5</span> model(s) checked
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Progress & Training -->
+        <div>
+            <div class="card">
+                <div class="card-title">
+                    <span class="section-step"><span class="step-num">3</span></span>
+                    <i class="fas fa-chart-simple"></i> Training Progress
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-wrapper">
+                        <div class="progress-container">
+                            <div class="progress-bar-horizontal">
+                                <div class="progress-fill-horizontal" id="progressFill" style="width: 0%;">
+                                    <span class="progress-text-inside" id="progressTextInside">0%</span>
+                                </div>
+                            </div>
+                            <div class="progress-percentage">
+                                <span id="progressPercent">0</span><span class="percent-symbol">%</span>
+                            </div>
+                            <div class="progress-status" id="progressStatus">
+                                <span class="status-dot idle" id="statusDot"></span>
+                                <span id="statusText">Ready to train</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-train" id="trainBtn" onclick="trainAllModels()" style="margin-top: 16px;">
+                    <i class="fas fa-play"></i> Train All Models
+                </button>
+
+                <!-- Log Section inside progress card -->
+                <div class="log-section" id="logSection" style="margin-top: 16px;">
+                    <div id="logContent">
+                        <div class="log-empty"><i class="fa-solid fa-terminal" style="margin-right:6px;"></i>Training logs will appear here</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== RESULTS: MODEL PERFORMANCE TABLE ========== -->
+    <div class="card" id="resultsCard" style="margin-top: 28px; display: none;">
+        <div class="card-title">
+            <i class="fas fa-trophy"></i> Model Performance — Latest Training Run
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">
+            <strong>R²</strong> is the raw R-squared score (max 1.0) — how well the model explains the data.
+            <strong>Accuracy</strong> shows that same score as a 0-100% pill (negative R² is floored at 0%).
+            <strong>MAE</strong> and <strong>RMSE</strong> are error metrics in ₹ (lower is better).
+        </p>
+        <div style="overflow-x: auto;">
+            <table class="results-table" id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>R²</th>
+                        <th>Accuracy</th>
+                        <th>MAE</th>
+                        <th>RMSE</th>
+                        <th>Rows Trained</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody">
+                </tbody>
+            </table>
+        </div>
+        <div id="resultsMeta" style="margin-top: 14px; font-size: 0.8rem; color: var(--text-muted);"></div>
+
+        <!-- Regression Chart -->
+        <div class="chart-container" id="chartContainer" style="display: none;">
+            <div class="chart-title"><i class="fas fa-chart-scatter"></i> Actual vs Predicted Prices</div>
+            <canvas id="regressionChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ========== TOAST NOTIFICATION ========== -->
+<div class="toast" id="toast">
+    <i class="fas fa-check-circle" id="toastIcon"></i>
+    <span id="toastMessage">Success!</span>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT - FULL FUNCTIONALITY
+     ============================================================ -->
+<script>
+    // ============================================================
+    // STATE
+    // ============================================================
+    const state = {
+        files: [],
+        progress: 0,
+        isTraining: false,
+        models: {
+            lr: { name: 'Linear Regression', trained: false, status: 'pending' },
+            rf: { name: 'Random Forest', trained: false, status: 'pending' },
+            xgb: { name: 'XGBoost', trained: false, status: 'pending' },
+            lstm: { name: 'LSTM', trained: false, status: 'pending' },
+            arima: { name: 'ARIMA', trained: false, status: 'pending' }
+        },
+        logs: []
+    };
+
+    let regressionChart = null;
+
+    // ============================================================
+    // DOM REFS
+    // ============================================================
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const trainBtn = document.getElementById('trainBtn');
+    const progressFill = document.getElementById('progressFill');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressTextInside = document.getElementById('progressTextInside');
+    const statusText = document.getElementById('statusText');
+    const statusDot = document.getElementById('statusDot');
+    const logContent = document.getElementById('logContent');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
+    const selectedModelsCount = document.getElementById('selectedModelsCount');
+
+    const ALL_MODEL_IDS = ['lr', 'rf', 'xgb', 'lstm', 'arima'];
+
+    function setAllTrainButtonsDisabled(disabled) {
+        trainBtn.disabled = disabled;
+        ALL_MODEL_IDS.forEach(id => {
+            const btn = document.getElementById(`trainbtn_${id}`);
+            if (btn) btn.disabled = disabled;
+        });
+    }
+
+    // ============================================================
+    // FILE DROP ZONE
+    // ============================================================
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            handleFiles(e.dataTransfer.files);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            handleFiles(e.target.files);
+        }
+        fileInput.value = '';
+    });
+
+    function handleFiles(files) {
+        let added = 0;
+        for (let file of files) {
+            const validTypes = ['csv', 'xlsx', 'xls'];
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (validTypes.includes(ext)) {
+                state.files.push(file);
+                added++;
+            } else {
+                showToast(`${file.name} is not a supported format`, 'error');
+            }
+        }
+        if (added > 0) {
+            renderFiles();
+            updateSelectedCount();
+            showToast(`${added} file(s) uploaded successfully`, 'success');
+            addLog('info', `${added} file(s) uploaded: ${state.files.map(f => f.name).join(', ')}`);
+        }
+    }
+
+    function removeFile(index) {
+        state.files.splice(index, 1);
+        renderFiles();
+        updateSelectedCount();
+        if (state.files.length === 0) {
+            addLog('info', 'All files removed');
+        } else {
+            addLog('info', `File removed. ${state.files.length} files remaining`);
+        }
+    }
+
+    function renderFiles() {
+        if (state.files.length === 0) {
+            fileList.innerHTML = '<div class="no-files"><i class="fa-solid fa-folder-open" style="margin-right:6px;"></i>No files uploaded yet</div>';
+            return;
+        }
+
+        fileList.innerHTML = state.files.map((file, index) => {
+            const size = (file.size / 1024).toFixed(1);
+            const icon = file.name.endsWith('.csv') ? 'fa-file-csv' : 'fa-file-excel';
+            return `
+                <div class="file-item">
+                    <div class="file-info">
+                        <i class="fas ${icon}"></i>
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${size} KB</div>
+                        </div>
+                    </div>
+                    <button class="file-remove" onclick="removeFile(${index})" title="Remove file">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updateSelectedCount() {
+        const checkboxes = document.querySelectorAll('.model-check-item input[type="checkbox"]:checked');
+        const count = checkboxes.length;
+        selectedModelsCount.textContent = count;
+        
+        document.querySelectorAll('.model-check-item input[type="checkbox"]').forEach(cb => {
+            const id = cb.id.replace('model_', '');
+            const statusEl = document.getElementById(`status_${id}`);
+            if (!cb.checked) {
+                statusEl.textContent = 'Skipped';
+                statusEl.className = 'model-status';
+                statusEl.style.background = '#f5f5f5';
+                statusEl.style.color = '#999';
+            } else if (state.models[id] && state.models[id].trained) {
+                statusEl.textContent = 'Trained';
+                statusEl.className = 'model-status trained';
+            } else {
+                statusEl.textContent = 'Pending';
+                statusEl.className = 'model-status pending';
+            }
+        });
+    }
+
+    document.querySelectorAll('.model-check-item input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', updateSelectedCount);
+    });
+
+    // ============================================================
+    // LOGGING
+    // ============================================================
+    function addLog(type, message) {
+        const time = new Date().toLocaleTimeString();
+        const icons = {
+            'success': '<i class="fa-solid fa-circle-check" style="color:#10b981;"></i>',
+            'error': '<i class="fa-solid fa-circle-xmark" style="color:#ef4444;"></i>',
+            'info': '<i class="fa-solid fa-circle-info" style="color:#0284c7;"></i>',
+            'progress': '<i class="fa-solid fa-spinner fa-spin" style="color:#f59e0b;"></i>',
+            'complete': '<i class="fa-solid fa-award" style="color:#f59e0b;"></i>'
+        };
+        
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        logEntry.innerHTML = `
+            <span class="log-time">${time}</span>
+            <span class="log-icon ${type}">${icons[type] || 'ℹ️'}</span>
+            <span>${message}</span>
+        `;
+        
+        const emptyState = logContent.querySelector('.log-empty');
+        if (emptyState) emptyState.remove();
+        
+        logContent.appendChild(logEntry);
+        logContent.scrollTop = logContent.scrollHeight;
+        
+        state.logs.push({ time, type, message });
+    }
+
+    // ============================================================
+    // PROGRESS UPDATE - STEP BY STEP
+    // ============================================================
+    function updateProgress(percent, status, isComplete = false) {
+        const clamped = Math.min(100, Math.max(0, percent));
+        state.progress = clamped;
+        
+        progressFill.style.width = clamped + '%';
+        progressPercent.textContent = Math.round(clamped);
+        progressTextInside.textContent = Math.round(clamped) + '%';
+        
+        if (clamped > 10) {
+            progressTextInside.classList.add('visible');
+        } else {
+            progressTextInside.classList.remove('visible');
+        }
+        
+        if (status) {
+            statusText.textContent = status;
+        }
+        
+        if (isComplete) {
+            statusDot.className = 'status-dot complete';
+        } else if (clamped > 0 && clamped < 100) {
+            statusDot.className = 'status-dot running';
+        } else if (clamped === 100) {
+            statusDot.className = 'status-dot complete';
+        } else {
+            statusDot.className = 'status-dot idle';
+        }
+    }
+
+    // ============================================================
+    // STEP-BY-STEP PROGRESS SIMULATION
+    // ============================================================
+    function simulateEarlyProgress(callback) {
+        // These are visual milestones only, shown WHILE we wait for the
+        // real /admin/train request to come back. They deliberately stop
+        // at 65% and hold there (the dot keeps pulsing) -- 100% is only
+        // ever set after the server actually confirms training finished,
+        // see runTraining() below.
+        const progressSteps = [
+            { value: 10, label: 'Preparing dataset...' },
+            { value: 30, label: 'Feature engineering...' },
+            { value: 65, label: 'Training models on the server...' }
+        ];
+
+        let stepIndex = 0;
+
+        function nextStep() {
+            if (stepIndex < progressSteps.length) {
+                const step = progressSteps[stepIndex];
+                updateProgress(step.value, step.label);
+                addLog('progress', step.label);
+                stepIndex++;
+                setTimeout(nextStep, 1200);
+            } else {
+                if (callback) callback();
+            }
+        }
+
+        // Reset progress
+        updateProgress(0, 'Starting training...');
+        setTimeout(nextStep, 800);
+    }
+
+    // ============================================================
+    // TOAST NOTIFICATION
+    // ============================================================
+    function showToast(message, type = 'info') {
+        toastMessage.textContent = message;
+        toast.className = 'toast visible ' + type;
+        
+        const icons = {
+            'success': 'fa-check-circle',
+            'error': 'fa-exclamation-circle',
+            'info': 'fa-info-circle'
+        };
+        toastIcon.className = 'fas ' + (icons[type] || icons.info);
+        
+        clearTimeout(toast.timeout);
+        toast.timeout = setTimeout(() => {
+            toast.classList.remove('visible');
+        }, 4000);
+    }
+
+    // ============================================================
+    // RENDER REGRESSION CHART
+    // ============================================================
+    function renderRegressionChart(data) {
+        const container = document.getElementById('chartContainer');
+        const canvas = document.getElementById('regressionChart');
+        
+        if (!data || !data.actual || !data.predicted || data.actual.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+
+        if (regressionChart) {
+            regressionChart.destroy();
+            regressionChart = null;
+        }
+
+        const ctx = canvas.getContext('2d');
+
+        // Calculate min and max for the diagonal line
+        const allValues = [...data.actual, ...data.predicted];
+        const minVal = Math.min(...allValues) * 0.9;
+        const maxVal = Math.max(...allValues) * 1.1;
+
+        regressionChart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Predictions',
+                        data: data.actual.map((actual, i) => ({
+                            x: actual,
+                            y: data.predicted[i]
+                        })),
+                        backgroundColor: 'rgba(185,130,42,0.7)',
+                        borderColor: '#b9822a',
+                        borderWidth: 1,
+                        pointRadius: 5,
+                        pointHoverRadius: 8
+                    },
+                    {
+                        label: 'Perfect Prediction (y=x)',
+                        data: [
+                            { x: minVal, y: minVal },
+                            { x: maxVal, y: maxVal }
+                        ],
+                        type: 'line',
+                        borderColor: '#2c7a5a',
+                        borderDash: [6, 4],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 12,
+                            font: { size: 11, family: "'Inter', sans-serif", weight: '500' },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(26,58,42,0.92)',
+                        titleFont: { family: "'Inter', sans-serif", weight: '600' },
+                        bodyFont: { family: "'Inter', sans-serif" },
+                        cornerRadius: 8,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Actual: ₹' + context.parsed.x.toFixed(2) + 
+                                       ' | Predicted: ₹' + context.parsed.y.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Actual Price (₹)',
+                            font: { size: 12, weight: '600' },
+                            color: '#4a6a5a'
+                        },
+                        grid: { color: 'rgba(43,42,37,0.05)' },
+                        ticks: {
+                            callback: function(value) { return '₹' + Number(value).toFixed(0); },
+                            font: { size: 10, family: "'Inter', sans-serif" },
+                            color: '#6b6455'
+                        },
+                        min: minVal,
+                        max: maxVal
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Predicted Price (₹)',
+                            font: { size: 12, weight: '600' },
+                            color: '#4a6a5a'
+                        },
+                        grid: { color: 'rgba(43,42,37,0.05)' },
+                        ticks: {
+                            callback: function(value) { return '₹' + Number(value).toFixed(0); },
+                            font: { size: 10, family: "'Inter', sans-serif" },
+                            color: '#6b6455'
+                        },
+                        min: minVal,
+                        max: maxVal
+                    }
+                }
+            }
+        });
+    }
+
+    // ============================================================
+    // RENDER MODEL PERFORMANCE TABLE
+    // ============================================================
+    function accuracyClass(score) {
+        if (score === null || score === undefined) return 'low';
+        if (score >= 75) return 'high';
+        if (score >= 50) return 'mid';
+        return 'low';
+    }
+
+    function renderResultsTable(metrics) {
+        const resultsCard = document.getElementById('resultsCard');
+        const tbody = document.getElementById('resultsTableBody');
+        const meta = document.getElementById('resultsMeta');
+        if (!resultsCard || !tbody) return;
+
+        const rows = [];
+        const modelLabels = {
+            linear_regression: { icon: '<i class="fa-solid fa-chart-line" style="color:#0284c7;margin-right:4px;"></i>', name: 'Linear Regression' },
+            random_forest: { icon: '<i class="fa-solid fa-tree" style="color:#15803d;margin-right:4px;"></i>', name: 'Random Forest' },
+            xgboost: { icon: '<i class="fa-solid fa-bolt" style="color:#f59e0b;margin-right:4px;"></i>', name: 'XGBoost' },
+            lstm: { icon: '<i class="fa-solid fa-brain" style="color:#7c3aed;margin-right:4px;"></i>', name: 'LSTM' }
+        };
+
+        let bestModel = null;
+        let bestR2 = -Infinity;
+
+        Object.keys(modelLabels).forEach(key => {
+            const m = metrics[key];
+            if (!m) return;
+            if (m.r2_score !== null && m.r2_score !== undefined && m.r2_score > bestR2) {
+                bestR2 = m.r2_score;
+                bestModel = key;
+            }
+        });
+
+        Object.keys(modelLabels).forEach(key => {
+            const m = metrics[key];
+            if (!m) return;
+            const isBest = key === bestModel && bestR2 > 0;
+            const r2Raw = m.r2_score !== null && m.r2_score !== undefined
+                ? m.r2_score.toFixed(3)
+                : '—';
+            const accDisplay = m.accuracy_score !== null && m.accuracy_score !== undefined
+                ? m.accuracy_score.toFixed(1) + '%'
+                : '—';
+            rows.push(`
+                <tr>
+                    <td class="model-cell">
+                        ${modelLabels[key].icon} ${modelLabels[key].name}
+                        ${isBest ? '<span class="best-model-badge"><i class="fa-solid fa-trophy" style="margin-right:4px;"></i>Best</span>' : ''}
+                    </td>
+                    <td>${r2Raw}</td>
+                    <td><span class="accuracy-pill ${accuracyClass(m.accuracy_score)}">${accDisplay}</span></td>
+                    <td>${m.mae !== null && m.mae !== undefined ? m.mae.toFixed(2) : '—'}</td>
+                    <td>${m.rmse !== null && m.rmse !== undefined ? m.rmse.toFixed(2) : '—'}</td>
+                    <td>${m.rows_trained ?? '—'}</td>
+                </tr>
+            `);
+        });
+
+        if (metrics.arima_by_pair) {
+            rows.push(`<tr><td class="model-cell" colspan="6"><i class="fa-solid fa-wave-square" style="margin-right:6px;"></i> ARIMA (per commodity/market pair)</td></tr>`);
+            Object.entries(metrics.arima_by_pair).forEach(([pairKey, m]) => {
+                const r2Raw = m.r2_score !== null && m.r2_score !== undefined ? m.r2_score.toFixed(3) : '—';
+                const accDisplay = m.accuracy_score !== null && m.accuracy_score !== undefined 
+                    ? m.accuracy_score.toFixed(1) + '%' 
+                    : '—';
+                rows.push(`
+                    <tr class="sub-row">
+                        <td>${pairKey}</td>
+                        <td>${r2Raw}</td>
+                        <td>${m.accuracy_score !== null && m.accuracy_score !== undefined
+                                ? `<span class="accuracy-pill ${accuracyClass(m.accuracy_score)}">${accDisplay}</span>`
+                                : `<span style="color:#999;font-size:0.8rem;">${m.note || 'skipped'}</span>`}</td>
+                        <td>${m.mae !== null && m.mae !== undefined ? m.mae.toFixed(2) : '—'}</td>
+                        <td>${m.rmse !== null && m.rmse !== undefined ? m.rmse.toFixed(2) : '—'}</td>
+                        <td>${m.rows_trained ?? '—'}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        tbody.innerHTML = rows.join('');
+        meta.textContent = `Dataset total rows: ${metrics.trained_at_rows_total ?? '—'} · New rows added this run: ${metrics.new_rows_added ?? '—'}`;
+        resultsCard.style.display = 'block';
+        resultsCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // Render regression chart if data is available
+        if (metrics.regression_data) {
+            renderRegressionChart(metrics.regression_data);
+        } else {
+            document.getElementById('chartContainer').style.display = 'none';
+        }
+    }
+
+    // ============================================================
+    // TRAINING FUNCTIONS
+    // ============================================================
+    async function runTraining(selectedModels, { isSingle = false } = {}) {
+        if (state.isTraining) return;
+
+        if (state.files.length === 0) {
+            showToast('Please upload at least one CSV file', 'error');
+            return;
+        }
+
+        if (selectedModels.length === 0) {
+            showToast('Please select at least one model to train', 'error');
+            return;
+        }
+
+        const modelParam = selectedModels.join(',');
+
+        state.isTraining = true;
+        setAllTrainButtonsDisabled(true);
+
+        let activeBtn = trainBtn;
+        let originalBtnHtml = trainBtn.innerHTML;
+        if (isSingle) {
+            activeBtn = document.getElementById(`trainbtn_${selectedModels[0]}`);
+            originalBtnHtml = activeBtn.innerHTML;
+            activeBtn.innerHTML = '<span class="mini-spinner"></span> Training...';
+        } else {
+            trainBtn.innerHTML = '<span class="spinner"></span> Training...';
+        }
+
+        selectedModels.forEach(id => {
+            state.models[id].trained = false;
+            const statusEl = document.getElementById(`status_${id}`);
+            statusEl.textContent = 'Training';
+            statusEl.className = 'model-status training';
+        });
+
+        addLog('progress', `Starting training for ${selectedModels.length} model(s): ${selectedModels.join(', ')}`);
+        addLog('info', `Using ${state.files.length} file(s): ${state.files.map(f => f.name).join(', ')}`);
+
+        let lastResult = null;
+
+        try {
+            // Step-by-step progress simulation (stops at 65% and holds
+            // there, pulsing, until the real backend response arrives)
+            await new Promise((resolve) => {
+                simulateEarlyProgress(resolve);
+            });
+
+            // Actual API call for training
+            for (let i = 0; i < state.files.length; i++) {
+                const file = state.files[i];
+                addLog('progress', `Uploading & appending ${file.name} to master dataset...`);
+
+                const formData = new FormData();
+                formData.append('dataset', file);
+                formData.append('models', modelParam);
+
+                const response = await fetch('/admin/train', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Training failed on the server');
+                }
+
+                lastResult = result;
+
+                // Replay the server's own real progress checkpoints into
+                // the log now that we have them, so the log reflects what
+                // actually happened server-side (not just the animation).
+                if (Array.isArray(result.progress)) {
+                    result.progress.forEach(step => {
+                        if (step && step.status) addLog('info', step.status);
+                    });
+                }
+
+                addLog('success', `${file.name} processed — dataset now has ${result.metrics.trained_at_rows_total} rows`);
+            }
+
+            // Mark selected models as trained
+            selectedModels.forEach(id => {
+                state.models[id].trained = true;
+                const statusEl = document.getElementById(`status_${id}`);
+                statusEl.textContent = 'Trained';
+                statusEl.className = 'model-status trained';
+            });
+
+            // Only now -- after the server has actually confirmed the
+            // models finished training -- does the bar move to 100%.
+            updateProgress(100, 'Training complete!', true);
+            addLog('complete', `Training complete — ${selectedModels.length} model(s) updated with new data`);
+
+            if (lastResult) renderResultsTable(lastResult.metrics);
+            showToast(`${isSingle ? state.models[selectedModels[0]].name + ' retrained' : 'Models retrained'} on the updated dataset!`, 'success');
+            statusDot.className = 'status-dot complete';
+            statusText.textContent = 'Training complete!';
+
+        } catch (err) {
+            addLog('error', `${err.message}`);
+            showToast(`${err.message}`, 'error');
+            selectedModels.forEach(id => {
+                const statusEl = document.getElementById(`status_${id}`);
+                statusEl.textContent = 'Failed';
+                statusEl.className = 'model-status';
+                statusEl.style.background = '#fce4ec';
+                statusEl.style.color = '#c62828';
+            });
+            statusDot.className = 'status-dot error';
+        }
+
+        setAllTrainButtonsDisabled(false);
+        activeBtn.innerHTML = originalBtnHtml;
+        state.isTraining = false;
+    }
+
+    function trainAllModels() {
+        const selectedModels = [];
+        document.querySelectorAll('.model-check-item input[type="checkbox"]:checked').forEach(cb => {
+            selectedModels.push(cb.id.replace('model_', ''));
+        });
+        if (selectedModels.length === 0) {
+            showToast('Please check at least one model to train', 'error');
+            return;
+        }
+        runTraining(selectedModels, { isSingle: false });
+    }
+
+    function trainSingleModel(modelId) {
+        runTraining([modelId], { isSingle: true });
+    }
+
+    // ============================================================
+    // LOAD LAST METRICS ON PAGE LOAD
+    // ============================================================
+    async function loadLastMetrics() {
+        try {
+            const res = await fetch('/admin/model-metrics');
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.metrics) renderResultsTable(data.metrics);
+        } catch (e) { /* no previous run yet — ignore */ }
+    }
+
+    // ============================================================
+    // INITIALIZE
+    // ============================================================
+    updateSelectedCount();
+    addLog('info', 'Admin dashboard ready. Upload a dataset to begin.');
+    loadLastMetrics();
+
+    console.log('[KrishiSense] Admin Dashboard loaded');
+    console.log('[KrishiSense] Drag & drop CSV files to train models');
+    console.log('[KrishiSense] Supports: Linear Regression, Random Forest, XGBoost, LSTM, ARIMA');
+</script>
+
+
+
+<script src="{{ url_for('static', filename='js/lang-toggle.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+<script src="{{ url_for('static', filename='js/voice-assistant.js') }}"></script>
+</body>
+</html>

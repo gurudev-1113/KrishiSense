@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KrishiSense &mdash; Smart Farming Kit</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0a3d24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KrishiSense">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=3">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=3">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% if session.get('user_id') %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/voice-assistant.css') }}">
+{% endif %}
+<style>
+:root {
+  --primary: #0a3d24;
+  --primary-light: #15803d;
+  --primary-dark: #062a18;
+  --gold: #f59e0b;
+  --gold-light: #fbbf24;
+  --light-green: #f0fdf4;
+  --light-green-dark: #dcfce7;
+  --dark: #0f172a;
+  --text-muted: #64748b;
+  --surface-border: #e2e8f0;
+  --radius: 18px;
+  --shadow: 0 10px 25px -5px rgba(10, 61, 36, 0.08), 0 8px 10px -6px rgba(10, 61, 36, 0.04);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; overflow-x:hidden; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-x:hidden;
+  width:100%;
+  background:
+    radial-gradient(1000px circle at 10% 10%, rgba(16, 185, 129, 0.08), transparent 60%),
+    radial-gradient(800px circle at 90% 80%, rgba(245, 158, 11, 0.07), transparent 50%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  color: var(--dark);
+}
+
+/* Nav */
+.navbar {
+  position:sticky; top:0; z-index:100; background:rgba(10,61,36,0.96); backdrop-filter:blur(10px);
+  padding:12px 28px; display:flex; justify-content:space-between; align-items:center;
+  border-bottom:3px solid var(--gold);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100vw;
+}
+.navbar .brand { color:#ffffff; font-size:1.35rem; font-weight:800; display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; }
+.navbar .brand-logo-img { width:40px; height:40px; border-radius:50%; background:#fff; padding:2px; box-shadow:0 2px 8px rgba(0,0,0,0.25); object-fit:contain; flex-shrink:0; }
+.navbar .brand-text { white-space:nowrap; }
+.navbar .links { display:flex; align-items:center; gap:14px; flex-shrink:0; }
+.navbar .links a { color:#cbd5e1; text-decoration:none; font-weight:600; font-size:0.92rem; transition:color .2s; }
+.navbar .links a:hover { color:#ffffff; }
+.navbar .nav-login-link {
+  font-size: 0.88rem;
+  color: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: inline-block;
+  line-height: 1.2;
+}
+.navbar .nav-login-link:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+.navbar .cta {
+  background:linear-gradient(135deg,var(--gold),#d97706);
+  color:#0f172a !important;
+  font-weight:700;
+  padding:8px 18px;
+  border-radius:24px;
+  box-shadow:0 4px 14px rgba(245,158,11,0.3);
+  white-space:nowrap;
+  display:inline-block;
+  line-height:1.2;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 8px 12px;
+  }
+  .navbar .brand {
+    gap: 6px;
+  }
+  .navbar .brand-logo-img {
+    width: 28px;
+    height: 28px;
+  }
+  .navbar .brand-text {
+    font-size: 1.0rem;
+  }
+  .navbar .links {
+    gap: 6px;
+  }
+  .navbar .nav-desktop-link {
+    display: none !important;
+  }
+  .navbar .nav-login-link {
+    font-size: 0.74rem;
+    padding: 4px 8px;
+    border-radius: 14px;
+    border-color: rgba(255,255,255,0.25);
+  }
+  .navbar .cta {
+    padding: 5px 11px;
+    font-size: 0.74rem;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(245,158,11,0.25);
+  }
+  .lang-toggle {
+    margin-right: 0 !important;
+    padding: 2px !important;
+    border-radius: 14px !important;
+  }
+  .lang-toggle .lang-btn {
+    padding: 3px 6px !important;
+    font-size: 0.62rem !important;
+    border-radius: 10px !important;
+  }
+  .hero {
+    padding: 36px 16px 28px !important;
+  }
+  .hero h1 {
+    font-size: 1.85rem !important;
+    line-height: 1.25 !important;
+  }
+  .hero p {
+    font-size: 0.92rem !important;
+    margin-bottom: 22px !important;
+  }
+  .hero-video-box {
+    margin-top: 22px !important;
+    border-radius: 16px !important;
+  }
+}
+
+@media (max-width: 365px) {
+  .navbar {
+    padding: 6px 8px;
+  }
+  .navbar .brand-text {
+    font-size: 0.90rem;
+  }
+  .navbar .links {
+    gap: 4px;
+  }
+  .navbar .nav-login-link {
+    font-size: 0.70rem;
+    padding: 3px 6px;
+  }
+  .navbar .cta {
+    padding: 4px 8px;
+    font-size: 0.70rem;
+  }
+}
+.gt-widget { display:flex; align-items:center; background:rgba(255,255,255,0.1); border-radius:30px; padding:3px 10px; margin-right:6px; }
+.gt-widget .goog-te-gadget-simple { background:transparent !important; border:none !important; font-family:'Inter',sans-serif !important; font-size:0.7rem !important; color:#fff !important; }
+.gt-widget .goog-te-gadget-simple .goog-te-menu-value span { color:#fff !important; }
+body > .skiptranslate.goog-te-gadget-icon, .goog-te-banner-frame { display:none !important; }
+body { top: 0 !important; }
+
+/* Hero */
+.hero { max-width:1200px; margin:0 auto; padding:90px 32px 60px; text-align:center; }
+.hero .badge { display:inline-block; background:#fff; color:var(--primary); border:1.5px solid var(--gold); padding:6px 18px; border-radius:30px; font-size:0.8rem; font-weight:700; letter-spacing:0.04em; margin-bottom:22px; }
+.hero h1 { font-size:3rem; font-weight:900; color:var(--primary); line-height:1.15; margin-bottom:18px; }
+.hero h1 span { color:var(--gold); }
+.hero p { max-width:680px; margin:0 auto 34px; color:var(--text-muted); font-size:1.12rem; line-height:1.6; }
+.hero-actions { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+.btn { padding:14px 30px; border-radius:30px; font-weight:700; text-decoration:none; font-size:0.98rem; display:inline-flex; align-items:center; gap:8px; transition:transform .2s, box-shadow .2s; }
+.btn-primary { background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#fff; box-shadow:0 10px 26px rgba(185,130,42,0.35); }
+.btn-primary:hover { transform:translateY(-2px); }
+.btn-outline { border:2px solid var(--primary); color:var(--primary); background:#fff; }
+.hero-video-box {
+  max-width: 960px;
+  margin: 44px auto 0;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(10, 61, 36, 0.22), 0 6px 18px rgba(0, 0, 0, 0.08);
+  border: 3px solid rgba(245, 158, 11, 0.35);
+  background: #000;
+  position: relative;
+  aspect-ratio: 16 / 9;
+}
+.hero-video-box video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* Stats strip */
+.stats-strip { max-width:1000px; margin:0 auto 70px; display:grid; grid-template-columns:repeat(4,1fr); gap:20px; padding:0 32px; }
+.stat-box { background:#fff; border-radius:14px; padding:22px; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.06); }
+.stat-box .num { font-size:1.7rem; font-weight:800; color:var(--primary); }
+.stat-box .lbl { font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.03em; margin-top:4px; }
+@media (max-width:760px){ .stats-strip{ grid-template-columns:repeat(2,1fr); } }
+
+/* Modules */
+.section { max-width:1200px; margin:0 auto; padding:20px 32px 80px; }
+.section-head { text-align:center; margin-bottom:44px; }
+.section-head h2 { font-size:2.1rem; color:var(--primary); font-weight:800; }
+.section-head p { color:var(--text-muted); margin-top:8px; }
+.module-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:22px; }
+@media (max-width:980px){ .module-grid{ grid-template-columns:repeat(2,1fr);} }
+@media (max-width:560px){ .module-grid{ grid-template-columns:1fr;} }
+.module-card { background:#fff; border-radius:var(--radius); padding:28px 24px; box-shadow:var(--shadow); text-decoration:none; color:inherit; display:block; transition:transform .25s; border-top:4px solid var(--gold); }
+.module-card:hover { transform:translateY(-6px); }
+.module-card .m-code { font-size:0.72rem; font-weight:800; color:var(--gold); letter-spacing:0.06em; }
+.module-card .m-icon { font-size:2.1rem; margin:12px 0; }
+.module-card h3 { font-size:1.15rem; color:var(--primary); margin-bottom:8px; }
+.module-card p { font-size:0.87rem; color:var(--text-muted); line-height:1.5; }
+
+/* Hardware section */
+.hw-section { background:var(--primary); color:#f0e6d2; padding:70px 32px; }
+.hw-inner { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:50px; align-items:center; }
+@media (max-width:900px){ .hw-inner{ grid-template-columns:1fr; } }
+.hw-inner h2 { font-size:1.9rem; font-weight:800; margin-bottom:14px; color:#fff; }
+.hw-inner p { color:#cfe0d2; line-height:1.7; margin-bottom:16px; font-size:0.98rem; }
+.hw-inner .status { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.08); padding:8px 16px; border-radius:24px; font-size:0.85rem; font-weight:600; margin-bottom:20px; }
+.hw-inner .dot { width:9px; height:9px; border-radius:50%; background:var(--gold-light); }
+.code-block { background:#0f2a1a; border:1px solid rgba(255,255,255,0.15); border-radius:12px; padding:18px 20px; font-family:'Courier New',monospace; font-size:0.82rem; color:#d4e8d8; overflow-x:auto; line-height:1.6; }
+.code-block .k { color:var(--gold-light); }
+.hw-steps { list-style:none; }
+.hw-steps li { padding:8px 0 8px 28px; position:relative; font-size:0.9rem; color:#e0ecd8; }
+.hw-steps li::before { content:'\2713'; position:absolute; left:0; color:var(--gold-light); font-weight:800; }
+
+footer { text-align:center; padding:34px; color:var(--text-muted); font-size:0.85rem; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="brand">
+    <img src="{{ url_for('static', filename='img/logo.png') }}?v=3" alt="KrishiSense Logo" class="brand-logo-img">
+    <span class="brand-text">KrishiSense</span>
+  </a>
+  <div class="links">
+    <div class="lang-toggle" id="langToggle">
+      <button type="button" class="lang-btn active" data-lang="en">EN</button>
+      <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
+    </div>
+    <a href="#modules" class="nav-desktop-link" data-i18n="nav.modules">Modules</a>
+    <a href="#hardware" class="nav-desktop-link" data-i18n="nav.hardware">Hardware</a>
+    {% if session.get('user_id') %}
+      <a href="{{ url_for('dashboard') }}" class="cta" data-i18n="nav.dashboard">Dashboard</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="nav-login-link" data-i18n="nav.login">Login</a>
+      <a href="{{ url_for('register') }}" class="cta" data-i18n="nav.getstarted">Get Started</a>
+    {% endif %}
+  </div>
+</nav>
+
+<section class="hero">
+  <div style="margin-bottom: 24px;">
+    <img src="{{ url_for('static', filename='img/logo.png') }}?v=3" alt="KrishiSense Emblem" style="width: 130px; height: 130px; border-radius: 50%; background: #ffffff; padding: 4px; box-shadow: 0 12px 36px rgba(10, 61, 36, 0.22); border: 3px solid var(--gold); display: inline-block;">
+  </div>
+  <div class="badge" data-i18n="hero.badge">POT-SCALE SMART FARMING KIT &middot; IOT + MACHINE LEARNING</div>
+  <h1>One plant pot. <span>Four decisions</span>, no longer made blind.</h1>
+  <p data-i18n="hero.desc">KrishiSense closes the loop on what to sow, when to water, whether a leaf spot matters, and when to sell &mdash; with a live sensor node, a crop recommender, a leaf disease detector and a mandi price forecaster in one integrated system.</p>
+  <div class="hero-actions">
+    {% if session.get('user_id') %}
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary"><i class="fas fa-gauge-high"></i> Open Dashboard</a>
+    {% else %}
+      <a href="{{ url_for('register') }}" class="btn btn-primary"><i class="fas fa-arrow-right"></i> Get Started</a>
+      <a href="{{ url_for('login') }}" class="btn btn-outline"><i class="fas fa-right-to-bracket"></i> Login</a>
+    {% endif %}
+  </div>
+  <div class="hero-video-box">
+    <video id="heroVideo" controls muted loop playsinline preload="none" title="KrishiSense Smart Farming">
+      <source src="{{ url_for('static', filename='videos/krishisense.mp4') }}" type="video/mp4">
+      Your browser does not support HTML video.
+    </video>
+  </div>
+</section>
+
+<div class="stats-strip">
+  <div class="stat-box"><div class="num">{{ stats.commodities }}</div><div class="lbl">Commodities Tracked</div></div>
+  <div class="stat-box"><div class="num">{{ stats.markets }}</div><div class="lbl">Markets Covered</div></div>
+  <div class="stat-box"><div class="num">22</div><div class="lbl">Crops Scored (M2)</div></div>
+  <div class="stat-box"><div class="num">4</div><div class="lbl">Integrated Modules</div></div>
+</div>
+
+<section class="section" id="modules">
+  <div class="section-head">
+    <h2>Four modules, one build</h2>
+    <p>Every module below is live in this same Flask application &mdash; one login, one database layer, one process (Objective M6).</p>
+  </div>
+  <div class="module-grid">
+    <a href="{{ url_for('telemetry_bp.telemetry_dashboard') if session.get('user_id') else url_for('login') }}" class="module-card">
+      <div class="m-code">M1 &middot; HARDWARE</div>
+      <div class="m-icon"><i class="fa-solid fa-tower-broadcast" style="color:var(--gold);"></i></div>
+      <h3>Real-Time Monitoring</h3>
+      <p>Soil moisture, air temp/humidity, soil temperature and pH sampled every 10s from the pot and streamed over Wi-Fi.</p>
+    </a>
+    <a href="{{ url_for('crop_bp.crop_form') if session.get('user_id') else url_for('login') }}" class="module-card">
+      <div class="m-code">M2 &middot; MACHINE LEARNING</div>
+      <div class="m-icon"><i class="fa-solid fa-seedling" style="color:#10b981;"></i></div>
+      <h3>Crop Recommender</h3>
+      <p>Scores 22 candidate crops against soil &amp; climate values across 5 algorithms, returns the top-3 with confidence.</p>
+    </a>
+    <a href="{{ url_for('disease_bp.disease_index') if session.get('user_id') else url_for('login') }}" class="module-card">
+      <div class="m-code">M3 &middot; DEEP LEARNING</div>
+      <div class="m-icon"><i class="fa-solid fa-leaf" style="color:#059669;"></i></div>
+      <h3>Leaf Disease Detection</h3>
+      <p>Classifies an uploaded tomato/potato/apple leaf as healthy or diseased, with confidence and a treatment note.</p>
+    </a>
+    <a href="{{ url_for('dashboard') if session.get('user_id') else url_for('login') }}" class="module-card">
+      <div class="m-code">M4 &middot; MACHINE LEARNING</div>
+      <div class="m-icon"><i class="fa-solid fa-chart-line" style="color:var(--gold);"></i></div>
+      <h3>Mandi Price Forecast</h3>
+      <p>Projects the modal price for a crop &amp; market 7&ndash;14 days out from historical arrivals and prices, with a sell/hold call.</p>
+    </a>
+  </div>
+</section>
+
+<section class="hw-section" id="hardware">
+  <div class="hw-inner">
+    <div>
+      <h2>Module M1 + M6 &middot; Built for the board</h2>
+      <div class="status"><span class="dot"></span> Reads the Arduino Uno node live over USB serial</div>
+      <p>The ingest endpoint, SQLite schema and threshold-based advisory engine (M5) are fully live, fed either by the real sensor node (Arduino Uno + pH probe + DHT11 + HW-080 soil sensor + 16x2 LCD) over USB serial, or by a demo simulator when no board is plugged in.</p>
+      <p>Every cycle is averaged over the last 10 readings and scored against a trained plant-health model, so the Sensor Node tab shows one clear healthy / needs-attention verdict, not just raw numbers.</p>
+      <ul class="hw-steps">
+        <li>Plug the Arduino Uno in, note its COM port (default COM6)</li>
+        <li>Set KRISHISENSE_HARDWARE_MODE=serial and KRISHISENSE_SERIAL_PORT before starting the server</li>
+        <li>pip install pyserial (already in requirements.txt)</li>
+        <li>Leave KRISHISENSE_HARDWARE_MODE unset (or =simulate) to fall back to the demo node</li>
+      </ul>
+    </div>
+    <div class="code-block">
+POST <span class="k">/api/telemetry</span><br>
+X-Device-Token: <span class="k">&lt;shared token&gt;</span><br>
+Content-Type: application/json<br><br>
+{<br>
+&nbsp;&nbsp;"device_id": "pot-node-1",<br>
+&nbsp;&nbsp;"moisture_pct": 54.2,<br>
+&nbsp;&nbsp;"air_temp_c": 27.1,<br>
+&nbsp;&nbsp;"humidity_pct": 68.0,<br>
+&nbsp;&nbsp;"soil_temp_c": 24.5,<br>
+&nbsp;&nbsp;"ph": 6.6<br>
+}
+    </div>
+  </div>
+</section>
+
+<footer>KrishiSense &middot; Precision agriculture, pot scale &middot; Localhost build</footer>
+
+
+
+<script>
+(function() {
+  var v = document.getElementById('heroVideo');
+  if (!v) return;
+  if (window.innerWidth > 768) {
+    v.preload = 'metadata';
+    v.autoplay = true;
+    v.play().catch(function(){});
+  } else {
+    v.preload = 'none';
+  }
+})();
+</script>
+<script src="{{ url_for('static', filename='js/lang-toggle.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+{% if session.get('user_id') %}
+<script src="{{ url_for('static', filename='js/voice-assistant.js') }}"></script>
+{% endif %}
+</body>
+</html>

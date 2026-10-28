@@ -1,0 +1,48 @@
+{
+  "locations": [
+    "Bangalore",
+    "Chikmangaluru",
+    "Davangere",
+    "Gulbarga",
+    "Hassan",
+    "Kasaragodu",
+    "Kodagu",
+    "Madikeri",
+    "Mangalore",
+    "Mysuru",
+    "Raichur"
+  ],
+  "soil_types": [
+    "Alluvial",
+    "Arid and Desert",
+    "Black",
+    "Black cotton",
+    "Clay",
+    "Clay loam",
+    "Drained loam",
+    "Dry sandy",
+    "Gravelly sand",
+    "Heavy clay",
+    "Heavy cotton",
+    "Laterite",
+    "Light sandy",
+    "Loam",
+    "Medium textured",
+    "Medium textured clay",
+    "Red",
+    "Red laterite",
+    "River basins",
+    "Sandy",
+    "Sandy clay loam",
+    "Sandy loam",
+    "Teelah",
+    "Unknown",
+    "Well drained",
+    "loamy sand"
+  ],
+  "irrigation": [
+    "Basin",
+    "Drip",
+    "Spray"
+  ]
+}

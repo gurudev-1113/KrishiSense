@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSense | Sensor Node</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a3d24">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="KrishiSense">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice-assistant.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #0a3d24;
+            --primary-light: #15803d;
+            --primary-dark: #062a18;
+            --gold: #f59e0b;
+            --gold-light: #fbbf24;
+            --light-green: #f0fdf4;
+            --dark: #0f172a;
+            --dark-soft: #334155;
+            --text-muted: #64748b;
+            --surface-border: #e2e8f0;
+            --radius: 18px;
+            --shadow: 0 10px 25px -5px rgba(10, 61, 36, 0.07), 0 8px 10px -6px rgba(10, 61, 36, 0.04);
+            --shadow-hover: 0 20px 35px -5px rgba(10, 61, 36, 0.12), 0 10px 10px -5px rgba(10, 61, 36, 0.05);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(1000px circle at 10% 10%, rgba(16, 185, 129, 0.08), transparent 60%),
+                radial-gradient(800px circle at 90% 80%, rgba(245, 158, 11, 0.07), transparent 50%),
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background-attachment: fixed;
+            color: var(--dark);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        .brand-logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: contain;
+            margin-right: 11px;
+            background: #fff;
+            padding: 2px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            vertical-align: middle;
+        }
+        .krishi-nav {
+            background: #0a3d24;
+            border-bottom: 3px solid var(--gold);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .krishi-nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            margin-left: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 7px 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+        .krishi-nav a:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .krishi-nav a.active-link {
+            color: #ffffff;
+            background: rgba(16, 185, 129, 0.25);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .krishi-nav .brand {
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            letter-spacing: -0.4px;
+        }
+        .lang-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 30px;
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #e2e8f0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .lang-btn.active {
+            background: #f59e0b;
+            color: #0f172a;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        body > .skiptranslate.goog-te-gadget-icon, .goog-te-banner-frame { display:none !important; }
+        body { top: 0 !important; }
+        .wrap { max-width:1200px; margin:0 auto; padding:36px 20px 60px; }
+        h1 { font-size:2rem; font-weight:800; color: var(--primary-dark); margin-bottom:6px; letter-spacing: -0.5px; }
+        .sub { color: var(--text-muted); font-size: 0.98rem; margin-bottom:12px; }
+        .status-line { display:flex; align-items:center; gap:8px; margin-bottom:28px; font-size:0.9rem; font-weight: 600; color: var(--dark-soft); }
+        .dot { width:10px; height:10px; border-radius:50%; background:#ccc; }
+        .dot.online { background:#10b981; box-shadow:0 0 8px #10b981; }
+        .dot.offline { background:#ef4444; box-shadow:0 0 8px #ef4444; }
+        .gauges { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:24px; }
+        @media (max-width:860px) { .gauges { grid-template-columns:repeat(2,1fr); } }
+        @media (max-width:768px) {
+            .krishi-nav { padding: 12px 14px; flex-direction: column; text-align: center; }
+            .krishi-nav a { margin-left: 2px; padding: 5px 8px; font-size: 0.76rem; }
+            .wrap { padding: 20px 14px 40px; }
+            h1 { font-size: 1.6rem; }
+        }
+        @media (max-width:480px) {
+            .gauges { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .gauge { padding: 16px 12px; }
+            .gauge .value { font-size: 1.6rem; }
+            .card { padding: 18px 14px; }
+        }
+        .gauge {
+            background:#fff; border-radius:var(--radius); padding:22px; text-align:center;
+            border: 1px solid var(--surface-border); box-shadow: var(--shadow); transition: all 0.25s ease;
+        }
+        .gauge:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: #cbd5e1; }
+        .gauge .label { font-size:0.75rem; color: var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
+        .gauge .value { font-size:2.2rem; font-weight:800; color: var(--primary-dark); margin-top:6px; letter-spacing: -1px; }
+        .gauge .unit { font-size:0.88rem; color: var(--text-muted); font-weight: 600; margin-left: 2px; }
+        .panels { display:grid; grid-template-columns: 1.4fr 1fr; gap:20px; }
+        @media (max-width:960px) { .panels { grid-template-columns:1fr; } }
+        .card {
+            background:#fff; border-radius:var(--radius); padding:24px 26px; border: 1px solid var(--surface-border);
+            box-shadow: var(--shadow); transition: all 0.25s ease;
+        }
+        .card:hover { box-shadow: var(--shadow-hover); }
+        .card h3 { color: var(--primary-dark); margin-bottom:16px; font-size: 1.15rem; font-weight: 800; }
+        .alert-item { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:12px 14px; border-radius:10px; margin-bottom:8px; font-size:0.88rem; }
+        .alert-item.critical { background:#fef2f2; border: 1px solid #fee2e2; border-left:4px solid #ef4444; }
+        .alert-item.warning { background:#fffbeb; border: 1px solid #fef3c7; border-left:4px solid var(--gold); }
+        .alert-item.info { background:#f0f9ff; border: 1px solid #e0f2fe; border-left:4px solid #0284c7; }
+        .alert-item .sev { font-weight:800; text-transform:uppercase; font-size:0.7rem; margin-bottom: 2px; }
+        .no-alerts { color: var(--text-muted); padding:32px; text-align:center; font-size: 0.92rem; }
+        .sim-badge {
+            display:inline-block; background:#fffbeb; color:#92400e; border:1px solid #fde68a;
+            padding:4px 12px; border-radius:20px; font-size:0.72rem; font-weight:800; margin-left:10px; vertical-align: middle;
+        }
+        .health-card { display:flex; align-items:center; gap:20px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .health-icon { font-size:2.4rem; display: flex; align-items: center; justify-content: center; }
+        .health-status { font-size:1.2rem; font-weight:800; }
+        .health-status.healthy { color:#059669; }
+        .health-status.attention { color:#dc2626; }
+        .health-status.warming_up, .health-status.unavailable, .health-status.error { color:#d97706; }
+        .health-sub { font-size:0.86rem; color: var(--text-muted); margin-top:3px; }
+    </style>
+</head>
+<body>
+
+<div class="krishi-nav">
+    <span class="brand">
+        <img src="{{ url_for('static', filename='img/logo.png') }}?v=3" alt="KrishiSense" class="brand-logo-img" onerror="this.onerror=null; this.src='/static/logo.png?v=3';">
+        KrishiSense
+        <span style="font-size:0.75rem; font-weight:600; color:#94a3b8; margin-left:10px; padding-left:10px; border-left:1px solid rgba(255,255,255,0.18);">Sensor Node</span>
+    </span>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="lang-toggle" id="langToggle">
+            <button type="button" class="lang-btn active" data-lang="en">EN</button>
+            <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
+        </div>
+        <a href="{{ url_for('dashboard') }}" data-i18n="nav.pricedss">Price DSS</a>
+        <a href="{{ url_for('crop_bp.crop_form') }}" data-i18n="nav.cropadvisor">Crop Advisor</a>
+        <a href="{{ url_for('disease_bp.disease_index') }}" data-i18n="nav.leafscan">Leaf Scan</a>
+        <a href="{{ url_for('telemetry_bp.telemetry_dashboard') }}" class="active-link">Sensor Node</a>
+        <a href="{{ url_for('model_insights') }}" data-i18n="nav.insights">Insights</a>
+        <a href="{{ url_for('logout') }}"><i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 6px;"></i>Logout ({{ username }})</a>
+    </div>
+</div>
+
+<div class="wrap">
+    <h1><i class="fa-solid fa-tower-broadcast" style="color: var(--gold); margin-right: 8px;"></i><span data-i18n="sensor.title">Sensor Node</span>
+        {% if hardware_status == 'simulate' %}<span class="sim-badge" data-i18n="sensor.badgeSimulated">DEMO DATA -- not real hardware</span>
+        {% elif hardware_status == 'waiting' %}<span class="sim-badge" data-i18n="sensor.badgeWaiting">WAITING FOR HARDWARE</span>
+        {% else %}<span class="sim-badge" style="background:#dcfce7;color:#14532d;border-color:#86efac;" data-i18n="sensor.badgeConnected">ARDUINO CONNECTED</span>{% endif %}
+    </h1>
+    <p class="sub" data-i18n="sensor.subtitle">Modules M1 (live monitoring) + M5 (advisory rule engine)</p>
+    <div class="status-line">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText" data-i18n="sensor.checking">Checking node status…</span>
+    </div>
+
+    <div class="gauges">
+        <div class="gauge"><div class="label" data-i18n="sensor.moisture"><i class="fa-solid fa-droplet" style="color:#0284c7;margin-right:4px;"></i>Soil Moisture</div><div class="value" id="gMoisture">--</div><div class="unit">%</div></div>
+        <div class="gauge"><div class="label" data-i18n="sensor.airtemp"><i class="fa-solid fa-temperature-half" style="color:#ea580c;margin-right:4px;"></i>Air Temp</div><div class="value" id="gTemp">--</div><div class="unit">&deg;C</div></div>
+        <div class="gauge"><div class="label" data-i18n="sensor.humidity"><i class="fa-solid fa-cloud-showers-heavy" style="color:#0284c7;margin-right:4px;"></i>Humidity</div><div class="value" id="gHumidity">--</div><div class="unit">%</div></div>
+        <div class="gauge"><div class="label" data-i18n="sensor.ph"><i class="fa-solid fa-flask" style="color:#10b981;margin-right:4px;"></i>Soil pH</div><div class="value" id="gPh">--</div><div class="unit">pH</div></div>
+    </div>
+
+    <div class="panels">
+        <div class="card">
+            <h3 data-i18n="sensor.trend"><i class="fa-solid fa-chart-line" style="color:var(--gold);margin-right:6px;"></i>24-hour trend</h3>
+            <canvas id="trendChart" height="110"></canvas>
+        </div>
+        <div class="card">
+            <h3 data-i18n="sensor.alertfeed"><i class="fa-solid fa-bell" style="color:var(--gold);margin-right:6px;"></i>Alert feed</h3>
+            <div id="alertFeed"><div class="no-alerts" data-i18n="sensor.noAlerts">No active alerts.</div></div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+        <h3 data-i18n="sensor.healthHeading"><i class="fa-solid fa-heart-pulse" style="color:#10b981;margin-right:6px;"></i>Plant health (10-reading average vs. trained model)</h3>
+        <div class="health-card">
+            <div class="health-icon" id="healthIcon"><i class="fa-solid fa-hourglass-half" style="color:#64748b;"></i></div>
+            <div>
+                <div class="health-status warming_up" id="healthStatus" data-i18n="sensor.warmingUp">Warming up...</div>
+                <div class="health-sub" id="healthSub" data-i18n="sensor.waitingReadings">Waiting for the first 10 hardware readings.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let chart = null;
+
+function initChart() {
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [
+            { label: 'Moisture %', data: [], borderColor: '#2e9e5b', tension: 0.3, pointRadius: 0 },
+            { label: 'Air Temp °C', data: [], borderColor: '#c0392b', tension: 0.3, pointRadius: 0 },
+            { label: 'Humidity %', data: [], borderColor: '#3a7bbf', tension: 0.3, pointRadius: 0 },
+        ]},
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { x: { ticks: { maxTicksLimit: 8 } } } }
+    });
+}
+
+async function refreshLatest() {
+    try {
+        const res = await fetch("{{ url_for('telemetry_bp.api_latest') }}");
+        const data = await res.json();
+        if (data.status === 'no data yet') {
+            document.getElementById('statusDot').className = 'dot offline';
+            document.getElementById('statusText').textContent = window.KrishiI18n
+                ? window.KrishiI18n.t('sensor.waitingHardware') : 'Waiting for the sensor node to connect…';
+            return;
+        }
+        document.getElementById('gMoisture').textContent = data.moisture_pct ?? '--';
+        document.getElementById('gTemp').textContent = data.air_temp_c ?? '--';
+        document.getElementById('gHumidity').textContent = data.humidity_pct ?? '--';
+        document.getElementById('gPh').textContent = data.ph ?? '--';
+
+        const dot = document.getElementById('statusDot');
+        const text = document.getElementById('statusText');
+        if (data.node_online) {
+            dot.className = 'dot online';
+            text.textContent = (window.KrishiI18n ? window.KrishiI18n.t('sensor.nodeOnline') : 'Node online · last reading') + ` ${data.ts}`;
+        } else {
+            dot.className = 'dot offline';
+            text.textContent = (window.KrishiI18n ? window.KrishiI18n.t('sensor.nodeUnreachable') : 'Node unreachable · last seen') + ` ${data.ts}`;
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function refreshHistory() {
+    try {
+        const res = await fetch("{{ url_for('telemetry_bp.api_history') }}?hours=24");
+        const rows = await res.json();
+        const step = Math.max(1, Math.floor(rows.length / 60));
+        const sampled = rows.filter((_, i) => i % step === 0);
+        chart.data.labels = sampled.map(r => r.ts.slice(11, 16));
+        chart.data.datasets[0].data = sampled.map(r => r.moisture_pct);
+        chart.data.datasets[1].data = sampled.map(r => r.air_temp_c);
+        chart.data.datasets[2].data = sampled.map(r => r.humidity_pct);
+        chart.update();
+    } catch (e) { console.error(e); }
+}
+
+async function refreshAlerts() {
+    try {
+        const res = await fetch("{{ url_for('telemetry_bp.api_alerts') }}");
+        const rows = await res.json();
+        const active = rows.filter(a => !a.ts_cleared);
+        const feed = document.getElementById('alertFeed');
+        if (active.length === 0) {
+            feed.innerHTML = '<div class="no-alerts">No active alerts.</div>';
+            return;
+        }
+        feed.innerHTML = active.map(a => `
+            <div class="alert-item ${a.severity}">
+                <div><div class="sev">${a.severity}</div>${a.message}</div>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function refreshPlantHealth() {
+    try {
+        const res = await fetch("{{ url_for('telemetry_bp.api_plant_health') }}");
+        const icons = {
+            healthy: '<i class="fa-solid fa-circle-check" style="color:#10b981;"></i>',
+            attention: '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i>',
+            warming_up: '<i class="fa-solid fa-hourglass-half" style="color:#64748b;"></i>',
+            unavailable: '<i class="fa-solid fa-circle-question" style="color:#94a3b8;"></i>',
+            error: '<i class="fa-solid fa-circle-xmark" style="color:#ef4444;"></i>'
+        };
+        document.getElementById('healthIcon').innerHTML = icons[data.status] || '<i class="fa-solid fa-circle-question"></i>';
+        const statusEl = document.getElementById('healthStatus');
+        statusEl.textContent = data.status === 'healthy' ? 'Plant healthy'
+            : data.status === 'attention' ? 'Needs attention'
+            : (data.message || data.status);
+        statusEl.className = 'health-status ' + data.status;
+        let sub = data.message || '';
+        if (data.inputs) {
+            sub = `Avg over last ${data.averaged_over} readings — pH ${data.inputs.ph}, ${data.inputs.temperature}°C, ${data.inputs.humidity}% humidity`;
+        }
+        document.getElementById('healthSub').textContent = sub;
+    } catch (e) { console.error(e); }
+}
+
+initChart();
+refreshLatest(); refreshHistory(); refreshAlerts(); refreshPlantHealth();
+setInterval(refreshLatest, 5000);
+setInterval(refreshAlerts, 5000);
+setInterval(refreshHistory, 30000);
+setInterval(refreshPlantHealth, 5000);
+</script>
+
+<script src="{{ url_for('static', filename='js/lang-toggle.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+<script src="{{ url_for('static', filename='js/voice-assistant.js') }}"></script>
+</body>
+</html>

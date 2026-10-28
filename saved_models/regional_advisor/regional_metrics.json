@@ -1,0 +1,23 @@
+{
+  "train_accuracy": 0.945,
+  "test_accuracy": 0.8434,
+  "test_macro_f1": 0.7807,
+  "n_samples": 3158,
+  "n_features": 43,
+  "n_classes": 13,
+  "classes": [
+    "Arecanut",
+    "Blackgram",
+    "Cardamum",
+    "Cashew",
+    "Cocoa",
+    "Coconut",
+    "Coffee",
+    "Cotton",
+    "Ginger",
+    "Groundnut",
+    "Paddy",
+    "Pepper",
+    "Tea"
+  ]
+}

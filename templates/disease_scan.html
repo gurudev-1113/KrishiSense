@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSense | Leaf Disease Scan</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a3d24">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="KrishiSense">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/disease.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice-assistant.css') }}">
+    <style>
+        .gt-widget { display:flex; align-items:center; background:rgba(255,255,255,0.12); border-radius:30px; padding:2px 10px; }
+        .gt-widget .goog-te-gadget-simple { background:transparent !important; border:none !important; font-family:'Inter',sans-serif !important; font-size:0.7rem !important; color:#fff !important; }
+        .gt-widget .goog-te-gadget-simple .goog-te-menu-value span { color:#fff !important; }
+        body > .skiptranslate.goog-te-gadget-icon, .goog-te-banner-frame { display:none !important; }
+        body { top: 0 !important; }
+        .brand-logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: contain;
+            margin-right: 10px;
+            background: #fff;
+            padding: 2px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+<div class="krishi-nav">
+    <span class="brand">
+        <img src="{{ url_for('static', filename='img/logo.png') }}?v=3" alt="KrishiSense" class="brand-logo-img" onerror="this.onerror=null; this.src='/static/logo.png?v=3';">
+        KrishiSense
+        <span style="font-size:0.75rem; font-weight:600; color:#94a3b8; margin-left:10px; padding-left:10px; border-left:1px solid rgba(255,255,255,0.18);">Leaf Scan AI</span>
+    </span>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="lang-toggle" id="langToggle">
+          <button type="button" class="lang-btn active" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
+        </div>
+        <a href="{{ url_for('dashboard') }}" data-i18n="nav.pricedss">Price DSS</a>
+        <a href="{{ url_for('crop_bp.crop_form') }}" data-i18n="nav.cropadvisor">Crop Advisor</a>
+        <a href="{{ url_for('disease_bp.disease_index') }}" class="active-link" data-i18n="nav.leafscan">Leaf Scan</a>
+        <a href="{{ url_for('telemetry_bp.telemetry_dashboard') }}" data-i18n="nav.sensornode">Sensor Node</a>
+        <a href="{{ url_for('model_insights') }}" data-i18n="nav.insights">Insights</a>
+        <a href="{{ url_for('logout') }}"><i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 6px;"></i>Logout ({{ username }})</a>
+    </div>
+</div>
+
+<main>
+    <div class="hero">
+        <div class="hero-badge"><i class="fa-solid fa-microscope" style="color:var(--gold);margin-right:6px;"></i><span data-i18n="disease.badge">Apple &nbsp;&middot;&nbsp; Potato &nbsp;&middot;&nbsp; Tomato</span></div>
+        <h1 data-i18n="disease.title">Diagnose your plant in seconds</h1>
+        <p data-i18n="disease.desc">Upload a clear photo of a leaf and get an instant AI-based diagnosis, complete with prevention and treatment guidance -- right beside your photo, on this same page.</p>
+    </div>
+
+    <div class="workspace">
+
+        <div class="panel upload-panel">
+            <h3 class="panel-title" data-i18n="disease.step1">1. Choose your image</h3>
+            <form id="uploadForm">
+                <div class="upload-zone" id="dropZone">
+                    <img id="previewImg" class="preview-img" alt="Selected leaf preview">
+
+                    <div id="uploadPlaceholder" class="upload-placeholder">
+                        <div class="upload-icon-box">
+                            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <strong id="uploadHeading" data-i18n="disease.dragdrop">Drag &amp; drop a leaf image here</strong>
+                        <p data-i18n="disease.or">or</p>
+                        <button type="button" class="btn btn-browse" id="browseBtn" data-i18n="disease.choose">Choose Image</button>
+                    </div>
+
+                    <button type="button" class="change-image-btn" id="changeImageBtn" data-i18n="disease.change">
+                        <i class="fa-solid fa-arrows-rotate"></i> Change image
+                    </button>
+                    <div class="filename" id="fileName"></div>
+                    <input type="file" name="image" id="fileInput" accept="image/png, image/jpeg" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn" disabled data-i18n="disease.predict">
+                    <i class="fa-solid fa-microscope" style="margin-right: 6px;"></i> Predict Diagnosis
+                </button>
+            </form>
+        </div>
+
+        <div class="panel result-panel" id="resultPanel">
+            <h3 class="panel-title" data-i18n="disease.step2">2. Diagnosis</h3>
+
+            <div class="result-placeholder" id="resultPlaceholder">
+                <div class="result-icon-box">
+                    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <path d="M9 12l2 2 4-4"></path>
+                    </svg>
+                </div>
+                <p data-i18n="disease.placeholder">Your diagnosis will appear here after you choose an image and click Predict.</p>
+            </div>
+
+            <div class="result-loading" id="resultLoading" style="display:none;">
+                <div class="spinner"></div>
+                <p data-i18n="disease.analyzing">Analyzing image…</p>
+            </div>
+
+            <div class="alert" id="errorContent" style="display:none;">
+                <span class="alert-icon"><i class="fa-solid fa-circle-exclamation"></i></span>
+                <span id="errorMessage"></span>
+            </div>
+
+            <div id="resultContent" style="display:none;">
+                <div class="status-badge" id="statusBadge"></div>
+                <h2 class="result-title" id="resultTitle"></h2>
+
+                <div class="confidence-row">
+                    <span class="confidence-label" data-i18n="disease.confidence">Model Confidence</span>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceFill"></div>
+                    </div>
+                    <span class="confidence-value" id="confidenceValue"></span>
+                </div>
+
+                <div class="detail-block">
+                    <h4 data-i18n="disease.symptoms">Symptoms</h4>
+                    <p id="symptomsText"></p>
+                </div>
+                <div class="detail-block">
+                    <h4 data-i18n="disease.prevention">Prevention</h4>
+                    <p id="preventionText"></p>
+                </div>
+                <div class="detail-block">
+                    <h4 data-i18n="disease.treatment">Treatment</h4>
+                    <p id="treatmentText"></p>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-secondary" id="resetBtn" style="display:none;" data-i18n="disease.scanAnother">
+                <i class="fa-solid fa-arrow-rotate-left" style="margin-right: 6px;"></i> Scan Another Leaf
+            </button>
+        </div>
+
+    </div>
+
+    <div class="features">
+        <div class="feature"><i class="fa-solid fa-bolt-lightning feature-icon" style="color: #c8933b;"></i><span data-i18n="disease.feat1">Instant results</span></div>
+        <div class="feature"><i class="fa-solid fa-circle-check feature-icon" style="color: #1f6e4c;"></i><span data-i18n="disease.feat2">7 disease classes</span></div>
+        <div class="feature"><i class="fa-solid fa-brain feature-icon" style="color: #1f6e4c;"></i><span data-i18n="disease.feat3">CNN-based model</span></div>
+    </div>
+</main>
+
+<footer>
+    <span data-i18n="disease.footer">KrishiSense Module M3 · Not a substitute for professional agronomic advice</span>
+</footer>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const browseBtn = document.getElementById('browseBtn');
+    const changeImageBtn = document.getElementById('changeImageBtn');
+    const fileName = document.getElementById('fileName');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    const previewImg = document.getElementById('previewImg');
+    const uploadForm = document.getElementById('uploadForm');
+
+    const resultPlaceholder = document.getElementById('resultPlaceholder');
+    const resultLoading = document.getElementById('resultLoading');
+    const errorContent = document.getElementById('errorContent');
+    const errorMessage = document.getElementById('errorMessage');
+    const resultContent = document.getElementById('resultContent');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const statusBadge = document.getElementById('statusBadge');
+    const resultTitle = document.getElementById('resultTitle');
+    const confidenceFill = document.getElementById('confidenceFill');
+    const confidenceValue = document.getElementById('confidenceValue');
+    const symptomsText = document.getElementById('symptomsText');
+    const preventionText = document.getElementById('preventionText');
+    const treatmentText = document.getElementById('treatmentText');
+
+    function handleFiles(fileList) {
+        if (!fileList || fileList.length === 0) return;
+        const file = fileList[0];
+        fileName.textContent = file.name;
+        submitBtn.disabled = false;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImg.src = e.target.result;
+            previewImg.style.display = 'block';
+            uploadPlaceholder.style.display = 'none';
+            changeImageBtn.style.display = 'inline-flex';
+            dropZone.classList.add('has-preview');
+        };
+        reader.readAsDataURL(file);
+        resetResultPanel();
+    }
+
+    browseBtn.addEventListener('click', (e) => { e.preventDefault(); fileInput.click(); });
+    changeImageBtn.addEventListener('click', (e) => { e.preventDefault(); fileInput.click(); });
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+    ['dragover', 'dragenter'].forEach(evt => {
+        dropZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('dragover'); });
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            handleFiles(fileInput.files);
+        }
+    });
+
+    function resetResultPanel() {
+        resultPlaceholder.style.display = 'flex';
+        resultLoading.style.display = 'none';
+        errorContent.style.display = 'none';
+        resultContent.style.display = 'none';
+        resetBtn.style.display = 'none';
+    }
+
+    function showLoading() {
+        resultPlaceholder.style.display = 'none';
+        resultLoading.style.display = 'flex';
+        errorContent.style.display = 'none';
+        resultContent.style.display = 'none';
+        resetBtn.style.display = 'none';
+    }
+
+    function showError(message) {
+        resultPlaceholder.style.display = 'none';
+        resultLoading.style.display = 'none';
+        resultContent.style.display = 'none';
+        errorContent.style.display = 'flex';
+        errorMessage.textContent = message;
+        resetBtn.style.display = 'block';
+    }
+
+    function showResult(data) {
+        resultPlaceholder.style.display = 'none';
+        resultLoading.style.display = 'none';
+        errorContent.style.display = 'none';
+
+        statusBadge.className = 'status-badge ' + (data.is_healthy ? 'healthy' : 'diseased');
+        const dot = '<span class="status-dot"></span>';
+        const label = data.is_healthy 
+            ? (window.KrishiI18n ? window.KrishiI18n.t('disease.healthyBadge') : 'Healthy Leaf') 
+            : (window.KrishiI18n ? window.KrishiI18n.t('disease.diseasedBadge') : 'Disease Detected');
+        statusBadge.innerHTML = dot + label;
+
+        resultTitle.textContent = data.predicted_class;
+        confidenceFill.style.width = data.confidence;
+        confidenceValue.textContent = data.confidence;
+        symptomsText.textContent = data.remedy.symptoms;
+        preventionText.textContent = data.remedy.prevention;
+        treatmentText.textContent = data.remedy.treatment;
+
+        resultContent.style.display = 'block';
+        resetBtn.style.display = 'block';
+    }
+
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!fileInput.files || fileInput.files.length === 0) return;
+
+        showLoading();
+        submitBtn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+
+        try {
+            const response = await fetch('{{ url_for("disease_bp.disease_predict") }}', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                showResult(data);
+            } else {
+                showError(data.error || 'Something went wrong. Please try another image.');
+            }
+        } catch (err) {
+            showError('Could not reach the server. Please check your connection and try again.');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    resetBtn.addEventListener('click', () => {
+        uploadForm.reset();
+        fileName.textContent = '';
+        submitBtn.disabled = true;
+        previewImg.style.display = 'none';
+        previewImg.src = '';
+        uploadPlaceholder.style.display = 'flex';
+        changeImageBtn.style.display = 'none';
+        dropZone.classList.remove('has-preview');
+        resetResultPanel();
+    });
+</script>
+
+<script src="{{ url_for('static', filename='js/lang-toggle.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+<script src="{{ url_for('static', filename='js/voice-assistant.js') }}"></script>
+</body>
+</html>

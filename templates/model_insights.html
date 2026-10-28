@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSense | Model Insights</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a3d24">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="KrishiSense">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice-assistant.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #0a3d24;
+            --primary-light: #15803d;
+            --primary-dark: #062a18;
+            --gold: #f59e0b;
+            --gold-light: #fbbf24;
+            --light-green: #f0fdf4;
+            --dark: #0f172a;
+            --dark-soft: #334155;
+            --text-muted: #64748b;
+            --surface-border: #e2e8f0;
+            --radius: 18px;
+            --shadow: 0 10px 25px -5px rgba(10, 61, 36, 0.07), 0 8px 10px -6px rgba(10, 61, 36, 0.04);
+            --shadow-hover: 0 20px 35px -5px rgba(10, 61, 36, 0.12), 0 10px 10px -5px rgba(10, 61, 36, 0.05);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(1000px circle at 10% 10%, rgba(16, 185, 129, 0.08), transparent 60%),
+                radial-gradient(800px circle at 90% 80%, rgba(245, 158, 11, 0.07), transparent 50%),
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background-attachment: fixed;
+            color: var(--dark);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        .brand-logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: contain;
+            margin-right: 11px;
+            background: #fff;
+            padding: 2px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            vertical-align: middle;
+        }
+        .krishi-nav {
+            background: #0a3d24;
+            border-bottom: 3px solid var(--gold);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .krishi-nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            margin-left: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 7px 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+        .krishi-nav a:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .krishi-nav a.active-link {
+            color: #ffffff;
+            background: rgba(16, 185, 129, 0.25);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .krishi-nav .brand {
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            letter-spacing: -0.4px;
+        }
+        .lang-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 30px;
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #e2e8f0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .lang-btn.active {
+            background: #f59e0b;
+            color: #0f172a;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        .wrap { max-width:1200px; margin:0 auto; padding:36px 20px 60px; }
+        h1 { font-size:2rem; font-weight:800; color: var(--primary-dark); margin-bottom:6px; letter-spacing: -0.5px; }
+        .sub { color: var(--text-muted); font-size: 0.98rem; margin-bottom:26px; }
+        .module-section { margin-bottom:44px; }
+        .module-heading { display:flex; align-items:center; gap:10px; font-size:1.3rem; font-weight:800; color:var(--primary); margin-bottom:6px; padding-bottom:8px; border-bottom:2px solid var(--gold); }
+        .module-desc { color: var(--text-muted); font-size:0.92rem; line-height:1.6; margin:10px 0 16px; }
+        .module-grid { display:grid; grid-template-columns:1.3fr 1fr; gap:20px; }
+        .module-grid.even { grid-template-columns:1fr 1fr; }
+        @media (max-width:900px) { .module-grid, .module-grid.even { grid-template-columns:1fr; } }
+        .card { background:#fff; border-radius:var(--radius); padding:24px; border: 1px solid var(--surface-border); box-shadow: var(--shadow); transition: all 0.25s ease; }
+        .card:hover { box-shadow: var(--shadow-hover); }
+        .card h3 { margin-bottom:14px; color:var(--primary-dark); font-size:1.05rem; font-weight: 800; }
+        .card .card-note { font-size:0.8rem; color: var(--text-muted); margin-top:12px; line-height:1.5; }
+        .stat-row { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+        .stat-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:center; }
+        .stat-box .num { font-size:1.35rem; font-weight:800; color:var(--primary); }
+        .stat-box .lbl { font-size:0.72rem; color: var(--text-muted); text-transform:uppercase; margin-top:2px; letter-spacing:0.04em; font-weight: 700; }
+        .metric-table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+        .metric-table th { text-align:left; background:var(--primary); color:#f0e6d2; padding:11px 12px; font-weight:700; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.03em; }
+        .metric-table th:not(:first-child), .metric-table td:not(:first-child) { text-align:right; }
+        .metric-table td { padding:11px 12px; border-bottom:1px solid #f1f5f9; }
+        .metric-table tbody tr:last-child td { border-bottom:none; }
+        .metric-table tr.best td { background:#fefce8; font-weight:700; color: #854d0e; }
+        .badge { display:inline-block; background:var(--gold); color:#0f172a; font-size:0.68rem; font-weight:800; padding:2px 8px; border-radius:99px; margin-left:6px; vertical-align:middle; }
+        .class-list { list-style:none; font-size:0.88rem; color:#333; }
+        .class-list li { padding:8px 0; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; gap:12px; }
+        .class-list li:last-child { border-bottom:none; }
+        .class-list .crop { font-weight:700; color:var(--primary); }
+        .class-list .labels { color: var(--text-muted); text-align:right; }
+        .placeholder-card { text-align:center; padding:36px; color: var(--text-muted); }
+        .placeholder-card i { font-size:2rem; margin-bottom:10px; display:block; color: var(--gold); }
+        canvas { max-height:300px; }
+        .summary-card { background:#fff; border-radius:var(--radius); padding:24px; border: 1px solid var(--surface-border); box-shadow: var(--shadow); }
+    </style>
+</head>
+<body>
+
+<div class="krishi-nav">
+    <span class="brand">
+        <img src="{{ url_for('static', filename='img/logo.png') }}?v=3" alt="KrishiSense" class="brand-logo-img" onerror="this.onerror=null; this.src='/static/logo.png?v=3';">
+        KrishiSense
+        <span style="font-size:0.75rem; font-weight:600; color:#94a3b8; margin-left:10px; padding-left:10px; border-left:1px solid rgba(255,255,255,0.18);">Insights</span>
+    </span>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="lang-toggle" id="langToggle">
+          <button type="button" class="lang-btn active" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
+        </div>
+        <a href="{{ url_for('dashboard') }}" data-i18n="nav.pricedss">Price DSS</a>
+        <a href="{{ url_for('crop_bp.crop_form') }}" data-i18n="nav.cropadvisor">Crop Advisor</a>
+        <a href="{{ url_for('disease_bp.disease_index') }}" data-i18n="nav.leafscan">Leaf Scan</a>
+        <a href="{{ url_for('telemetry_bp.telemetry_dashboard') }}" data-i18n="nav.sensornode">Sensor Node</a>
+        <a href="{{ url_for('model_insights') }}" class="active-link" data-i18n="nav.insights">Model Insights</a>
+        <a href="{{ url_for('logout') }}"><i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 6px;"></i><span data-i18n="nav.logout">Logout</span> ({{ username }})</a>
+    </div>
+</div>
+
+<div class="wrap">
+    <h1><i class="fa-solid fa-chart-line" style="color:var(--gold);margin-right:8px;"></i><span data-i18n="insights.pageTitle">Model Insights</span></h1>
+    <p class="sub" data-i18n="insights.pageSubtitle">Measured accuracy and trained-model graphs for every KrishiSense module in one place.</p>
+
+    <!-- ============ OVERALL SUMMARY ============ -->
+    <div class="module-section">
+        <div class="module-heading"><i class="fas fa-trophy"></i> <span data-i18n="insights.summaryHeading">Best Accuracy per Module</span></div>
+        <div class="summary-card">
+            <canvas id="summaryChart"></canvas>
+            <p class="card-note" data-i18n="insights.summaryNote">Best score reached by each module: the strongest of the five price models, the strongest of the four crop algorithms, and the hold-out test accuracy for the regional advisor and the leaf-disease CNN.</p>
+        </div>
+    </div>
+
+    <!-- ============ MODULE A: MANDI PRICE PREDICTION DSS ============ -->
+    <div class="module-section">
+        <div class="module-heading"><i class="fas fa-chart-line"></i> <span data-i18n="insights.priceHeading">Module A — Mandi Price Prediction DSS</span></div>
+        <p class="module-desc" data-i18n="insights.priceDesc">This module predicts the modal (typical) market price for a chosen commodity and market in a given month, using five independently trained models: Linear Regression, Random Forest, XGBoost, ARIMA (a classical time-series model), and an LSTM neural network. All five run in parallel on the Model Comparison page so a user can see how much the models agree.</p>
+
+        {% if price_metrics %}
+        <div class="card" style="margin-bottom:20px;">
+            <h3 data-i18n="insights.priceTableHeading">Measured accuracy</h3>
+            <table class="metric-table">
+                <thead>
+                    <tr>
+                        <th data-i18n="insights.thModel">Model</th>
+                        <th data-i18n="insights.thAccuracy">Accuracy (%)</th>
+                        <th>R²</th>
+                        <th data-i18n="insights.thRmse">RMSE (₹)</th>
+                        <th data-i18n="insights.thMae">MAE (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for key, label in [
+                    ('linear_regression','Linear Regression'),
+                    ('random_forest','Random Forest'),
+                    ('xgboost','XGBoost'),
+                    ('arima','ARIMA'),
+                    ('lstm','LSTM')
+                ] %}
+                    {% set m = price_metrics[key] if price_metrics[key] is defined else None %}
+                    {% if m %}
+                    <tr class="{{ 'best' if key == 'lstm' else '' }}">
+                        <td>{{ label }}{% if key == 'lstm' %}<span class="badge" data-i18n="insights.badgeBest">BEST</span>{% endif %}</td>
+                        <td>{{ '%.2f'|format(m.accuracy_score) }}</td>
+                        <td>{{ '%.4f'|format(m.r2) }}</td>
+                        <td>{{ '%.2f'|format(m.rmse) }}</td>
+                        <td>{{ '%.2f'|format(m.mae) }}</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="module-grid even">
+            <div class="card">
+                <h3 data-i18n="insights.accuracyByModel">Accuracy by model</h3>
+                {% if price_metrics %}
+                <canvas id="priceAccuracyChart"></canvas>
+                <p class="card-note" data-i18n="insights.noConfusionMatrix">A confusion matrix doesn't apply here — price prediction is a regression task, not classification.</p>
+                {% else %}
+                <div class="placeholder-card"><i class="fas fa-circle-exclamation"></i><span data-i18n="insights.noPriceMetrics">No saved metrics found (saved_models/model_metrics.json).</span></div>
+                {% endif %}
+            </div>
+            <div class="card">
+                <h3 data-i18n="insights.rmseMaeHeading">RMSE &amp; MAE by model</h3>
+                {% if price_metrics %}
+                <canvas id="priceErrorChart"></canvas>
+                <p class="card-note" data-i18n="insights.rmseMaeNote">Lower is better. ARIMA has the smallest error in rupees but the weakest R², because it models each commodity–market series on its own without the shared features the other models use.</p>
+                {% else %}
+                <div class="placeholder-card"><i class="fas fa-circle-exclamation"></i><span data-i18n="insights.noPriceMetrics">No saved metrics found (saved_models/model_metrics.json).</span></div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if regression_data %}
+        <div class="card" style="margin-top:20px;">
+            <h3><span data-i18n="insights.actualVsPredicted">Actual vs. predicted price</span> ({{ regression_data.actual|length }} points)</h3>
+            <canvas id="priceRegressionChart"></canvas>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ============ MODULE B: CROP RECOMMENDATION ENGINE ============ -->
+    <div class="module-section">
+        <div class="module-heading"><i class="fas fa-seedling"></i> <span data-i18n="insights.cropHeading">Module B — Crop Recommendation Engine</span></div>
+        <p class="module-desc" data-i18n="insights.cropDesc">Four classifiers were trained on the updated 2,200-sample dataset (7 soil and weather features, 22 crop classes) and compared on a held-out split. Polynomial Logistic Regression is the strongest of the four.</p>
+
+        <div class="module-grid">
+            <div class="card">
+                <h3 data-i18n="insights.holdoutAccuracy">Hold-out accuracy by algorithm</h3>
+                {% if crop_metrics %}
+                <canvas id="cropAccuracyChart"></canvas>
+                {% else %}
+                <div class="placeholder-card"><i class="fas fa-circle-exclamation"></i><span data-i18n="insights.noMetricsFound">No saved metrics found.</span></div>
+                {% endif %}
+            </div>
+            <div class="card">
+                <h3 data-i18n="insights.cropTableHeading">Measured accuracy</h3>
+                {% if crop_metrics %}
+                <table class="metric-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="insights.thAlgorithm">Algorithm</th>
+                            <th data-i18n="insights.thHoldout">Hold-out Accuracy (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for key, label in [
+                        ('random_forest','Random Forest'),
+                        ('polynomial_logistic','Polynomial Logistic Regression'),
+                        ('logistic_regression','Logistic Regression'),
+                        ('decision_tree','Decision Tree')
+                    ] %}
+                        {% set m = crop_metrics[key] if crop_metrics[key] is defined else None %}
+                        {% if m and m.accuracy is defined %}
+                        <tr class="{{ 'best' if key == 'polynomial_logistic' else '' }}">
+                            <td>{{ label }}{% if key == 'polynomial_logistic' %}<span class="badge" data-i18n="insights.badgeBest">BEST</span>{% endif %}</td>
+                            <td>{{ '%.2f'|format(m.accuracy) }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% if crop_metrics.dataset %}
+                <div class="stat-row" style="margin-top:16px;">
+                    <div class="stat-box"><div class="num">{{ crop_metrics.dataset.n_samples }}</div><div class="lbl" data-i18n="insights.samples">Samples</div></div>
+                    <div class="stat-box"><div class="num">{{ crop_metrics.dataset.n_features }}</div><div class="lbl" data-i18n="insights.features">Features</div></div>
+                </div>
+                <div class="stat-row" style="margin-top:12px;">
+                    <div class="stat-box"><div class="num">{{ crop_metrics.dataset.n_classes }}</div><div class="lbl" data-i18n="insights.cropClasses">Crop classes</div></div>
+                    <div class="stat-box"><div class="num">{{ '%.2f'|format(crop_metrics.polynomial_logistic.accuracy) }}%</div><div class="lbl" data-i18n="insights.bestAccuracy">Best accuracy</div></div>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="placeholder-card"><i class="fas fa-circle-exclamation"></i><span data-i18n="insights.noMetricsFound">No saved metrics found.</span></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MODULE C: REGIONAL CROP ADVISOR ============ -->
+    <div class="module-section">
+        <div class="module-heading"><i class="fas fa-map-location-dot"></i> <span data-i18n="insights.regionalHeading">Module C — Regional Crop Advisor (Karnataka data)</span></div>
+        <p class="module-desc" data-i18n="insights.regionalDesc">A Random Forest trained on real Karnataka district-level crop records, using engineered soil, season and location features to suggest crops suited to a specific region.</p>
+
+        <div class="module-grid">
+            <div class="card">
+                <h3 data-i18n="insights.trainVsTest">Train accuracy, test accuracy and macro-F1</h3>
+                {% if regional_metrics %}
+                <canvas id="regionalAccuracyChart"></canvas>
+                {% else %}
+                <div class="placeholder-card"><i class="fas fa-circle-exclamation"></i><span data-i18n="insights.noRegionalMetrics">No saved metrics found — run train_regional_advisor.py.</span></div>
+                {% endif %}
+            </div>
+            <div class="card">
+                <h3 data-i18n="insights.regionalTableHeading">Measured metrics</h3>
+                {% if regional_metrics %}
+                <table class="metric-table">
+                    <thead>
+                        <tr><th data-i18n="insights.thMetric">Metric</th><th data-i18n="insights.thValue">Value</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td data-i18n="insights.trainingSamples">Training samples</td><td>{{ '{:,}'.format(regional_metrics.n_samples) }}</td></tr>
+                        <tr><td data-i18n="insights.engineeredFeatures">Engineered features</td><td>{{ regional_metrics.n_features }}</td></tr>
+                        <tr><td data-i18n="insights.cropClasses">Crop classes</td><td>{{ regional_metrics.n_classes }}</td></tr>
+                        <tr><td data-i18n="insights.trainAccuracy">Train accuracy</td><td>{{ '%.2f'|format(regional_metrics.train_accuracy * 100) }}%</td></tr>
+                        <tr class="best"><td data-i18n="insights.testAccuracy">Test accuracy</td><td>{{ '%.2f'|format(regional_metrics.test_accuracy * 100) }}%</td></tr>
+                        <tr><td data-i18n="insights.testF1">Test macro-F1</td><td>{{ '%.4f'|format(regional_metrics.test_macro_f1) }}</td></tr>
+                    </tbody>
+                </table>
+                <p class="card-note" data-i18n="insights.noConfusionRegional">The gap between train and test accuracy is the usual sign of some overfitting on the rarer crop classes, which is also why macro-F1 sits below plain accuracy.</p>
+                {% else %}
+                <div class="placeholder-card"><i class="fas fa-circle-exclamation"></i><span data-i18n="insights.noRegionalMetrics">No saved metrics found — run train_regional_advisor.py.</span></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MODULE D: LEAF DISEASE DETECTION ============ -->
+    <div class="module-section">
+        <div class="module-heading"><i class="fas fa-leaf"></i> <span data-i18n="insights.diseaseHeading">Module D — Leaf Disease Detection</span></div>
+        <p class="module-desc" data-i18n="insights.diseaseDesc">This module accepts a photograph of a plant leaf and classifies it into one of seven classes across three crops using a Convolutional Neural Network exported to the ONNX runtime format for fast, framework-independent inference.</p>
+
+        {% if disease_metrics %}
+        <div class="module-grid">
+            <div class="card">
+                <h3 data-i18n="insights.diseaseClassesHeading">Classes</h3>
+                <ul class="class-list">
+                    <li><span class="crop">Apple</span><span class="labels">Black Rot · Healthy</span></li>
+                    <li><span class="crop">Potato</span><span class="labels">Early Blight · Healthy</span></li>
+                    <li><span class="crop">Tomato</span><span class="labels">Bacterial Spot · Healthy · Yellow Leaf Curl Virus</span></li>
+                </ul>
+                <div class="stat-row" style="margin-top:16px;">
+                    <div class="stat-box"><div class="num">{{ '%.2f'|format(disease_metrics.test_accuracy) }}%</div><div class="lbl" data-i18n="insights.testAccuracy">Test accuracy</div></div>
+                    <div class="stat-box"><div class="num">{{ disease_metrics.n_classes }}</div><div class="lbl" data-i18n="insights.classes">Classes</div></div>
+                </div>
+                <div class="stat-row" style="margin-top:12px;">
+                    <div class="stat-box"><div class="num">{{ disease_metrics.epochs }}</div><div class="lbl" data-i18n="insights.epochs">Epochs</div></div>
+                    <div class="stat-box"><div class="num">ONNX</div><div class="lbl" data-i18n="insights.runtime">Runtime</div></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3 data-i18n="insights.cnnAccuracyHeading">CNN training and validation accuracy</h3>
+                <canvas id="cnnAccuracyChart"></canvas>
+            </div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+            <h3 data-i18n="insights.cnnLossHeading">CNN training and validation loss</h3>
+            <canvas id="cnnLossChart"></canvas>
+            <p class="card-note" data-i18n="insights.cnnNote">Validation loss spikes around epochs 3–6 while training loss keeps falling — a transient divergence that settles from epoch 10 onward, where both curves converge near zero.</p>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="placeholder-card"><i class="fas fa-image"></i><span data-i18n="insights.noDiseaseMetrics">No saved metrics found (saved_models/disease_model_metrics.json).</span></div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+const KS = {
+    dark:   '#1a3a2a',
+    green:  '#2d5a3e',
+    blue:   '#3a7bbf',
+    brown:  '#7a5a2a',
+    gold:   '#b9822a',
+    goldLt: '#d4a040'
+};
+const pctOpts = {
+    responsive:true,
+    plugins:{ legend:{ display:false } },
+    scales:{ y:{ beginAtZero:true, max:100, title:{ display:true, text:'Accuracy (%)' } } }
+};
+
+/* ---------- Summary: best accuracy per module ---------- */
+new Chart(document.getElementById('summaryChart'), {
+    type: 'bar',
+    data: {
+        labels: [
+            'Price DSS (best: LSTM)',
+            'Crop Advisor (best: Poly. Logistic)',
+            'Regional Advisor (test)',
+            'Leaf Disease (test)'
+        ],
+        datasets: [{
+            label: 'Best accuracy %',
+            data: [
+                {{ price_metrics.lstm.accuracy_score if price_metrics and price_metrics.lstm else 0 }},
+                {{ crop_metrics.polynomial_logistic.accuracy if crop_metrics and crop_metrics.polynomial_logistic else 0 }},
+                {{ (regional_metrics.test_accuracy * 100)|round(2) if regional_metrics else 0 }},
+                {{ disease_metrics.test_accuracy if disease_metrics else 0 }}
+            ],
+            backgroundColor: [KS.dark, KS.green, KS.blue, KS.gold]
+        }]
+    },
+    options: {
+        responsive:true,
+        plugins:{ legend:{ display:false } },
+        scales:{ y:{ beginAtZero:true, max:100, title:{ display:true, text:'Best / Test Accuracy (%)' } } }
+    }
+});
+
+{% if price_metrics %}
+/* ---------- Price: accuracy by model ---------- */
+new Chart(document.getElementById('priceAccuracyChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Linear Regression', 'Random Forest', 'XGBoost', 'ARIMA', 'LSTM'],
+        datasets: [{
+            label: 'Accuracy %',
+            data: [
+                {{ price_metrics.linear_regression.accuracy_score if price_metrics.linear_regression else 0 }},
+                {{ price_metrics.random_forest.accuracy_score if price_metrics.random_forest else 0 }},
+                {{ price_metrics.xgboost.accuracy_score if price_metrics.xgboost else 0 }},
+                {{ price_metrics.arima.accuracy_score if price_metrics.arima else 0 }},
+                {{ price_metrics.lstm.accuracy_score if price_metrics.lstm else 0 }}
+            ],
+            backgroundColor: [KS.dark, KS.green, KS.blue, KS.brown, KS.gold]
+        }]
+    },
+    options: pctOpts
+});
+
+/* ---------- Price: RMSE & MAE ---------- */
+new Chart(document.getElementById('priceErrorChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Linear Regression', 'Random Forest', 'XGBoost', 'ARIMA', 'LSTM'],
+        datasets: [
+            {
+                label: 'RMSE (₹)',
+                data: [
+                    {{ price_metrics.linear_regression.rmse if price_metrics.linear_regression else 0 }},
+                    {{ price_metrics.random_forest.rmse if price_metrics.random_forest else 0 }},
+                    {{ price_metrics.xgboost.rmse if price_metrics.xgboost else 0 }},
+                    {{ price_metrics.arima.rmse if price_metrics.arima else 0 }},
+                    {{ price_metrics.lstm.rmse if price_metrics.lstm else 0 }}
+                ],
+                backgroundColor: KS.dark
+            },
+            {
+                label: 'MAE (₹)',
+                data: [
+                    {{ price_metrics.linear_regression.mae if price_metrics.linear_regression else 0 }},
+                    {{ price_metrics.random_forest.mae if price_metrics.random_forest else 0 }},
+                    {{ price_metrics.xgboost.mae if price_metrics.xgboost else 0 }},
+                    {{ price_metrics.arima.mae if price_metrics.arima else 0 }},
+                    {{ price_metrics.lstm.mae if price_metrics.lstm else 0 }}
+                ],
+                backgroundColor: KS.gold
+            }
+        ]
+    },
+    options: {
+        responsive:true,
+        plugins:{ legend:{ position:'top' } },
+        scales:{ y:{ beginAtZero:true, title:{ display:true, text:'Error (₹)' } } }
+    }
+});
+{% endif %}
+
+{% if regression_data %}
+new Chart(document.getElementById('priceRegressionChart'), {
+    type: 'line',
+    data: {
+        labels: Array.from({length: {{ regression_data.actual|length }} }, (_, i) => i + 1),
+        datasets: [
+            { label: 'Actual', data: {{ regression_data.actual|tojson }}, borderColor:'#2e9e5b', pointRadius:0, tension:0.25 },
+            { label: 'Predicted', data: {{ regression_data.predicted|tojson }}, borderColor:'#b9822a', pointRadius:0, tension:0.25 }
+        ]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'bottom' } }, scales:{ x:{ ticks:{ maxTicksLimit:8 } } } }
+});
+{% endif %}
+
+{% if crop_metrics %}
+/* ---------- Crop recommender ---------- */
+new Chart(document.getElementById('cropAccuracyChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Random Forest', 'Decision Tree', 'Logistic Regression', 'Polynomial Logistic'],
+        datasets: [{
+            label: 'Hold-out accuracy %',
+            data: [
+                {{ crop_metrics.random_forest.accuracy if crop_metrics.random_forest and crop_metrics.random_forest.accuracy is defined else 0 }},
+                {{ crop_metrics.decision_tree.accuracy if crop_metrics.decision_tree and crop_metrics.decision_tree.accuracy is defined else 0 }},
+                {{ crop_metrics.logistic_regression.accuracy if crop_metrics.logistic_regression and crop_metrics.logistic_regression.accuracy is defined else 0 }},
+                {{ crop_metrics.polynomial_logistic.accuracy if crop_metrics.polynomial_logistic and crop_metrics.polynomial_logistic.accuracy is defined else 0 }}
+            ],
+            backgroundColor: [KS.dark, KS.green, KS.blue, KS.gold]
+        }]
+    },
+    options: {
+        responsive:true,
+        plugins:{ legend:{ display:false } },
+        scales:{ y:{ beginAtZero:true, max:100, title:{ display:true, text:'Hold-out Accuracy (%)' } } }
+    }
+});
+{% endif %}
+
+{% if regional_metrics %}
+new Chart(document.getElementById('regionalAccuracyChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Train Accuracy', 'Test Accuracy', 'Test Macro-F1'],
+        datasets: [{
+            label: 'Score %',
+            data: [
+                {{ (regional_metrics.train_accuracy * 100)|round(2) }},
+                {{ (regional_metrics.test_accuracy * 100)|round(2) }},
+                {{ (regional_metrics.test_macro_f1 * 100)|round(2) }}
+            ],
+            backgroundColor: [KS.dark, KS.gold, KS.blue]
+        }]
+    },
+    options: {
+        responsive:true,
+        plugins:{ legend:{ display:false } },
+        scales:{ y:{ beginAtZero:true, max:100, title:{ display:true, text:'Score (%)' } } }
+    }
+});
+{% endif %}
+
+{% if disease_metrics and disease_metrics.history %}
+const cnnEpochs = Array.from({length: {{ disease_metrics.history.accuracy|length }} }, (_, i) => i);
+
+new Chart(document.getElementById('cnnAccuracyChart'), {
+    type: 'line',
+    data: {
+        labels: cnnEpochs,
+        datasets: [
+            { label:'Training Accuracy', data: {{ disease_metrics.history.accuracy|tojson }}, borderColor:'#1f77b4', backgroundColor:'transparent', pointRadius:0, tension:0.15, borderWidth:2 },
+            { label:'Validation Accuracy', data: {{ disease_metrics.history.val_accuracy|tojson }}, borderColor:'#ff7f0e', backgroundColor:'transparent', pointRadius:0, tension:0.15, borderWidth:2 }
+        ]
+    },
+    options: {
+        responsive:true,
+        plugins:{ legend:{ position:'bottom' } },
+        scales:{
+            x:{ title:{ display:true, text:'Epoch' } },
+            y:{ title:{ display:true, text:'Accuracy' } }
+        }
+    }
+});
+
+new Chart(document.getElementById('cnnLossChart'), {
+    type: 'line',
+    data: {
+        labels: cnnEpochs,
+        datasets: [
+            { label:'Training Loss', data: {{ disease_metrics.history.loss|tojson }}, borderColor:'#1f77b4', backgroundColor:'transparent', pointRadius:0, tension:0.15, borderWidth:2 },
+            { label:'Validation Loss', data: {{ disease_metrics.history.val_loss|tojson }}, borderColor:'#ff7f0e', backgroundColor:'transparent', pointRadius:0, tension:0.15, borderWidth:2 }
+        ]
+    },
+    options: {
+        responsive:true,
+        plugins:{ legend:{ position:'top' } },
+        scales:{
+            x:{ title:{ display:true, text:'Epoch' } },
+            y:{ beginAtZero:true, title:{ display:true, text:'Loss' } }
+        }
+    }
+});
+{% endif %}
+</script>
+
+<script src="{{ url_for('static', filename='js/lang-toggle.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+<script src="{{ url_for('static', filename='js/voice-assistant.js') }}"></script>
+</body>
+</html>

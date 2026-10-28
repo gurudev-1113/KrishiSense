@@ -1,0 +1,57 @@
+{
+  "name": "KrishiSense - Smart Farming Platform",
+  "short_name": "KrishiSense",
+  "description": "Precision Agriculture & IoT Decision Support System for Crop Recommendation, Leaf Disease Detection, and Mandi Price Forecasts",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a3d24",
+  "theme_color": "#0a3d24",
+  "lang": "en-IN",
+  "categories": ["agriculture", "business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/static/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Crop Advisor",
+      "short_name": "Crop",
+      "description": "AI Crop Recommendation",
+      "url": "/crop",
+      "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Leaf Scan AI",
+      "short_name": "Leaf Scan",
+      "description": "Plant Leaf Disease Detection",
+      "url": "/disease",
+      "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Sensor Node",
+      "short_name": "Sensors",
+      "description": "Live IoT Pot Telemetry",
+      "url": "/telemetry",
+      "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Price DSS",
+      "short_name": "Prices",
+      "description": "Mandi Price Forecasting",
+      "url": "/dashboard",
+      "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

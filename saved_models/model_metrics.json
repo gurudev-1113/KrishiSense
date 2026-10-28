@@ -1,0 +1,32 @@
+{
+  "linear_regression": {
+    "rmse": 6417.66,
+    "mae": 3671.89,
+    "r2": 0.9013,
+    "accuracy_score": 90.13
+  },
+  "random_forest": {
+    "rmse": 6538.37,
+    "mae": 3661.0,
+    "r2": 0.8975,
+    "accuracy_score": 89.75
+  },
+  "xgboost": {
+    "rmse": 6536.21,
+    "mae": 3631.74,
+    "r2": 0.8976,
+    "accuracy_score": 89.76
+  },
+  "arima": {
+    "rmse": 5036.49,
+    "mae": 3558.12,
+    "r2": 0.7721,
+    "accuracy_score": 77.21
+  },
+  "lstm": {
+    "rmse": 6720.41,
+    "mae": 3782.19,
+    "r2": 0.9061,
+    "accuracy_score": 90.61
+  }
+}

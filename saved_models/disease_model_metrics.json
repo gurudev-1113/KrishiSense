@@ -1,0 +1,23 @@
+{
+  "model": "Convolutional Neural Network (exported to ONNX)",
+  "runtime": "onnxruntime",
+  "test_accuracy": 93.42,
+  "epochs": 19,
+  "n_classes": 7,
+  "classes": [
+    { "crop": "Apple", "label": "Black Rot" },
+    { "crop": "Apple", "label": "Healthy" },
+    { "crop": "Potato", "label": "Early Blight" },
+    { "crop": "Potato", "label": "Healthy" },
+    { "crop": "Tomato", "label": "Bacterial Spot" },
+    { "crop": "Tomato", "label": "Healthy" },
+    { "crop": "Tomato", "label": "Yellow Leaf Curl Virus" }
+  ],
+  "history": {
+    "accuracy": [0.911, 0.962, 0.972, 0.976, 0.984, 0.986, 0.992, 0.991, 0.993, 0.996, 0.997, 0.996, 0.998, 0.997, 0.999, 0.999, 0.999, 0.999, 0.998],
+    "val_accuracy": [0.989, 0.937, 0.991, 0.783, 0.748, 0.685, 0.855, 0.966, 0.968, 0.921, 0.996, 0.981, 0.989, 0.985, 0.990, 0.991, 0.974, 0.990, 0.995],
+    "loss": [0.248, 0.105, 0.093, 0.070, 0.052, 0.047, 0.025, 0.033, 0.022, 0.017, 0.012, 0.022, 0.015, 0.013, 0.010, 0.014, 0.010, 0.008, 0.007],
+    "val_loss": [0.038, 0.140, 0.036, 0.600, 0.900, 1.190, 0.390, 0.081, 0.078, 0.216, 0.014, 0.050, 0.030, 0.040, 0.030, 0.020, 0.067, 0.025, 0.018]
+  },
+  "history_source": "Curves traced from the Colab training plots; replace with the exact history arrays if you still have the notebook output."
+}

@@ -1,0 +1,249 @@
+{
+  "Arecanut": {
+    "avg_yield": 8842.2,
+    "min_yield": 4.0,
+    "max_yield": 127919.0,
+    "avg_price": 91199.73,
+    "min_price": 1493.0,
+    "max_price": 238542.0,
+    "sample_count": 150,
+    "common_locations": [
+      "Hassan",
+      "Madikeri",
+      "Kodagu"
+    ],
+    "common_soil": [
+      "Alluvial",
+      "Sandy loam",
+      "Laterite"
+    ]
+  },
+  "Blackgram": {
+    "avg_yield": 15880.4,
+    "min_yield": 2.0,
+    "max_yield": 313547.0,
+    "avg_price": 74442.13,
+    "min_price": 637.0,
+    "max_price": 234581.0,
+    "sample_count": 150,
+    "common_locations": [
+      "Hassan",
+      "Chikmangaluru",
+      "Raichur"
+    ],
+    "common_soil": [
+      "Black cotton",
+      "Clay loam",
+      "Laterite"
+    ]
+  },
+  "Cardamum": {
+    "avg_yield": 7319.4,
+    "min_yield": 4.0,
+    "max_yield": 127919.0,
+    "avg_price": 80827.0,
+    "min_price": 637.0,
+    "max_price": 249978.0,
+    "sample_count": 150,
+    "common_locations": [
+      "Kodagu",
+      "Hassan",
+      "Gulbarga"
+    ],
+    "common_soil": [
+      "Black",
+      "Sandy loam",
+      "Alluvial"
+    ]
+  },
+  "Cashew": {
+    "avg_yield": 2598.5,
+    "min_yield": 2.0,
+    "max_yield": 4904.0,
+    "avg_price": 82822.5,
+    "min_price": 637.0,
+    "max_price": 249978.0,
+    "sample_count": 146,
+    "common_locations": [
+      "Hassan",
+      "Mangalore",
+      "Gulbarga"
+    ],
+    "common_soil": [
+      "Laterite",
+      "Alluvial",
+      "Black"
+    ]
+  },
+  "Cocoa": {
+    "avg_yield": 1429.6,
+    "min_yield": 4.0,
+    "max_yield": 3671.0,
+    "avg_price": 96462.5,
+    "min_price": 1493.0,
+    "max_price": 238542.0,
+    "sample_count": 60,
+    "common_locations": [
+      "Gulbarga",
+      "Hassan",
+      "Mangalore"
+    ],
+    "common_soil": [
+      "Red",
+      "Loam",
+      "Clay loam"
+    ]
+  },
+  "Coconut": {
+    "avg_yield": 34211.1,
+    "min_yield": 2.0,
+    "max_yield": 623687.0,
+    "avg_price": 86597.48,
+    "min_price": 637.0,
+    "max_price": 249978.0,
+    "sample_count": 1458,
+    "common_locations": [
+      "Hassan",
+      "Gulbarga",
+      "Mangalore"
+    ],
+    "common_soil": [
+      "Sandy loam",
+      "Alluvial",
+      "Red"
+    ]
+  },
+  "Coffee": {
+    "avg_yield": 12636.5,
+    "min_yield": 9.0,
+    "max_yield": 127919.0,
+    "avg_price": 78897.8,
+    "min_price": 637.0,
+    "max_price": 249978.0,
+    "sample_count": 150,
+    "common_locations": [
+      "Mangalore",
+      "Gulbarga",
+      "Madikeri"
+    ],
+    "common_soil": [
+      "Sandy loam",
+      "Alluvial",
+      "Loam"
+    ]
+  },
+  "Cotton": {
+    "avg_yield": 51246.9,
+    "min_yield": 4.0,
+    "max_yield": 623687.0,
+    "avg_price": 84457.24,
+    "min_price": 637.0,
+    "max_price": 249978.0,
+    "sample_count": 21,
+    "common_locations": [
+      "Chikmangaluru",
+      "Mysuru",
+      "Gulbarga"
+    ],
+    "common_soil": [
+      "Clay loam",
+      "Clay",
+      "Alluvial"
+    ]
+  },
+  "Ginger": {
+    "avg_yield": 26344.1,
+    "min_yield": 4.0,
+    "max_yield": 132551.0,
+    "avg_price": 84531.52,
+    "min_price": 637.0,
+    "max_price": 249978.0,
+    "sample_count": 281,
+    "common_locations": [
+      "Hassan",
+      "Gulbarga",
+      "Chikmangaluru"
+    ],
+    "common_soil": [
+      "Sandy loam",
+      "Laterite",
+      "Red"
+    ]
+  },
+  "Groundnut": {
+    "avg_yield": 9250.7,
+    "min_yield": 2.0,
+    "max_yield": 313547.0,
+    "avg_price": 95393.22,
+    "min_price": 1493.0,
+    "max_price": 249978.0,
+    "sample_count": 146,
+    "common_locations": [
+      "Hassan",
+      "Chikmangaluru",
+      "Kasaragodu"
+    ],
+    "common_soil": [
+      "Sandy loam",
+      "Light sandy",
+      "Sandy"
+    ]
+  },
+  "Paddy": {
+    "avg_yield": 10061.3,
+    "min_yield": 2.0,
+    "max_yield": 313547.0,
+    "avg_price": 99256.33,
+    "min_price": 646.0,
+    "max_price": 238542.0,
+    "sample_count": 150,
+    "common_locations": [
+      "Hassan",
+      "Chikmangaluru",
+      "Kasaragodu"
+    ],
+    "common_soil": [
+      "Loam",
+      "Clay loam",
+      "Red laterite"
+    ]
+  },
+  "Pepper": {
+    "avg_yield": 11301.3,
+    "min_yield": 4.0,
+    "max_yield": 127919.0,
+    "avg_price": 89178.99,
+    "min_price": 646.0,
+    "max_price": 238542.0,
+    "sample_count": 146,
+    "common_locations": [
+      "Madikeri",
+      "Hassan",
+      "Kasaragodu"
+    ],
+    "common_soil": [
+      "Alluvial",
+      "Black",
+      "Sandy loam"
+    ]
+  },
+  "Tea": {
+    "avg_yield": 22776.8,
+    "min_yield": 2.0,
+    "max_yield": 313547.0,
+    "avg_price": 80918.53,
+    "min_price": 637.0,
+    "max_price": 249978.0,
+    "sample_count": 150,
+    "common_locations": [
+      "Hassan",
+      "Chikmangaluru",
+      "Mysuru"
+    ],
+    "common_soil": [
+      "Loam",
+      "Sandy loam",
+      "Clay loam"
+    ]
+  }
+}

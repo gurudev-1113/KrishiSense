@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSense | Crop Advisor</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0a3d24">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="KrishiSense">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice-assistant.css') }}">
+    <style>
+        :root {
+            --primary: #0a3d24;
+            --primary-light: #15803d;
+            --primary-dark: #062a18;
+            --gold: #f59e0b;
+            --gold-light: #fbbf24;
+            --light-green: #f0fdf4;
+            --dark: #0f172a;
+            --dark-soft: #334155;
+            --text-muted: #64748b;
+            --surface-border: #e2e8f0;
+            --radius: 18px;
+            --radius-card: 12px;
+            --shadow: 0 10px 25px -5px rgba(10, 61, 36, 0.07), 0 8px 10px -6px rgba(10, 61, 36, 0.04);
+            --shadow-hover: 0 20px 35px -5px rgba(10, 61, 36, 0.12), 0 10px 10px -5px rgba(10, 61, 36, 0.05);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(1000px circle at 10% 10%, rgba(16, 185, 129, 0.08), transparent 60%),
+                radial-gradient(800px circle at 90% 80%, rgba(245, 158, 11, 0.07), transparent 50%),
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            background-attachment: fixed;
+            color: var(--dark);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        .brand-logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: contain;
+            margin-right: 11px;
+            background: #fff;
+            padding: 2px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            vertical-align: middle;
+        }
+        .krishi-nav {
+            background: #0a3d24;
+            border-bottom: 3px solid var(--gold);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .krishi-nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            margin-left: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 7px 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+        .krishi-nav a:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .krishi-nav a.active-link {
+            color: #ffffff;
+            background: rgba(16, 185, 129, 0.25);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .krishi-nav .brand {
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            letter-spacing: -0.4px;
+        }
+        .lang-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 30px;
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #e2e8f0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .lang-btn.active {
+            background: #f59e0b;
+            color: #0f172a;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        body > .skiptranslate.goog-te-gadget-icon, .goog-te-banner-frame { display:none !important; }
+        body { top: 0 !important; }
+        .wrap { max-width: 1160px; margin: 0 auto; padding: 36px 20px 60px; }
+        h1 { font-size: 2rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 6px; letter-spacing: -0.5px; }
+        .sub { color: var(--text-muted); font-size: 0.98rem; margin-bottom: 26px; }
+        .grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 24px; }
+        @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+        .card {
+            background: #ffffff;
+            border-radius: var(--radius);
+            padding: 26px 28px;
+            border: 1px solid var(--surface-border);
+            box-shadow: var(--shadow);
+            transition: all 0.25s ease;
+        }
+        .card:hover { box-shadow: var(--shadow-hover); }
+        .card h3 { margin-bottom: 18px; color: var(--primary-dark); font-size: 1.2rem; font-weight: 800; }
+        .field { margin-bottom: 15px; }
+        .field label { display:block; font-size:0.78rem; font-weight:700; margin-bottom:6px; color: var(--dark-soft); text-transform: uppercase; letter-spacing: 0.03em; }
+        .field input {
+            width:100%; padding:11px 14px; border:1.5px solid #cbd5e1; border-radius:10px; font-size:0.95rem;
+            font-family:inherit; background:#ffffff; color:var(--dark); transition: all 0.2s ease;
+        }
+        .field input:focus { outline:none; border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); }
+        .hint { font-size:0.75rem; color: var(--text-muted); margin-top:4px; }
+        .result-placeholder { color: var(--text-muted); text-align:center; padding: 48px 16px; font-size: 0.92rem; }
+        .crop-row {
+            display:flex; align-items:center; justify-content:space-between; padding:15px 18px; border-radius:12px;
+            background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom:12px; transition: transform 0.2s ease;
+        }
+        .crop-row:hover { transform: translateY(-2px); border-color: #cbd5e1; }
+        .crop-row.top {
+            background: linear-gradient(135deg, #0a3d24, #15803d);
+            color:#fff; border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 24px rgba(10, 61, 36, 0.25);
+        }
+        .crop-name { font-weight:800; text-transform:capitalize; font-size:1.1rem; }
+        .crop-conf { font-weight:800; color: #d97706; font-size: 1.05rem; }
+        .crop-row.top .crop-conf { color: #fde68a; }
+        .note { margin-top:18px; padding:14px 16px; background:#fffbeb; border-left:4px solid var(--gold); border: 1px solid #fef3c7; border-left-width: 4px; border-radius:10px; font-size:0.88rem; color:#854d0e; }
+        .gap-note { margin-top:20px; padding:14px 16px; background:#fef2f2; border-left:4px solid #ef4444; border: 1px solid #fee2e2; border-left-width: 4px; border-radius:10px; font-size:0.84rem; color:#991b1b; }
+        .compare-wrap { max-width:1160px; margin:24px auto 0; }
+        .compare-table { width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; border: 1px solid #e2e8f0; box-shadow: var(--shadow); }
+        .compare-table th, .compare-table td { padding:13px 16px; text-align:left; font-size:0.9rem; border-bottom:1px solid #f1f5f9; }
+        .compare-table th { background: #0a3d24; color:#f8fafc; font-weight:700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .compare-table tr.best td { background:#fefce8; font-weight:700; color: #854d0e; }
+        .compare-table .unavailable { color: var(--text-muted); font-style:italic; }
+        #err { display:none; color:#dc2626; padding:12px 14px; background:#fef2f2; border: 1px solid #fecaca; border-radius:10px; margin-bottom:14px; font-size:0.88rem; font-weight: 500; }
+
+        /* ========== ADVISOR TABS ========== */
+        .advisor-tabs {
+            display:flex; gap:6px; margin-bottom:24px; background:#e2e8f0; padding:5px; border-radius:14px;
+            width:fit-content; border: 1px solid #cbd5e1;
+        }
+        .advisor-tab {
+            border:none; background:transparent; padding:10px 22px; border-radius:10px; font-family:inherit;
+            font-weight:700; font-size:0.9rem; color: #475569; cursor:pointer;
+            transition: all 0.2s ease;
+        }
+        .advisor-tab.active { background: #0a3d24; color:#fff; box-shadow:0 4px 14px rgba(10,61,36,0.3); }
+        .advisor-tab:hover:not(.active) { background: rgba(255,255,255,0.7); color: #0f172a; }
+        .advisor-panel { display:none; }
+        .advisor-panel.active { display:block; animation: fadeUp 0.35s ease; }
+        @keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+        .field select {
+            width:100%; padding:11px 14px; border:1.5px solid #cbd5e1; border-radius:10px; font-size:0.95rem;
+            font-family:inherit; background:#fff; color: var(--dark); transition: all 0.2s ease;
+        }
+        .field select:focus { outline:none; border-color: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); }
+        .sensor-tag {
+            display:inline-block; font-size:0.68rem; font-weight:700; letter-spacing:0.4px; text-transform:uppercase;
+            color: #065f46; background: #d1fae5; border: 1px solid #a7f3d0; padding:2px 8px; border-radius:8px; margin-left:6px;
+        }
+
+        .regional-crop-row { padding:18px; border-radius:12px; background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom:12px; }
+        .regional-crop-row.top {
+            background: linear-gradient(135deg, #0a3d24, #15803d); color:#fff; border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 24px rgba(10, 61, 36, 0.25);
+        }
+        .regional-crop-row .rc-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+        .regional-crop-row .rc-stats { display:flex; gap:18px; flex-wrap:wrap; font-size:0.8rem; opacity:0.95; }
+        .regional-crop-row .rc-stats b { display:block; font-size:0.96rem; }
+        .regional-crop-row.top .rc-stats { color:#e8f5e9; }
+        .regional-unavailable { text-align:center; padding:36px 16px; color: var(--text-muted); }
+
+        button.predict-btn {
+            width:100%; padding:14px; background: linear-gradient(135deg, #10b981, #059669);
+            color:#fff; border:none; border-radius:12px; font-weight:800; font-size:1rem; cursor:pointer; margin-top:8px;
+            transition: all 0.25s ease; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+            display: flex; align-items: center; justify-content: center;
+        }
+        button.predict-btn:hover { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45); }
+        button.predict-btn:active { transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            .krishi-nav { padding: 12px 14px; flex-direction: column; text-align: center; }
+            .krishi-nav a { margin-left: 2px; padding: 5px 8px; font-size: 0.76rem; }
+            .wrap { padding: 20px 14px 40px; }
+            .card { padding: 18px 16px; }
+            h1 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="krishi-nav">
+    <span class="brand">
+        <img src="{{ url_for('static', filename='img/logo.png') }}?v=3" alt="KrishiSense" class="brand-logo-img" onerror="this.onerror=null; this.src='/static/logo.png?v=3';">
+        KrishiSense
+        <span style="font-size:0.75rem; font-weight:600; color:#94a3b8; margin-left:10px; padding-left:10px; border-left:1px solid rgba(255,255,255,0.18);">Crop Advisor</span>
+    </span>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="lang-toggle" id="langToggle">
+          <button type="button" class="lang-btn active" data-lang="en">EN</button>
+          <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
+        </div>
+        <a href="{{ url_for('dashboard') }}">Price DSS</a>
+        <a href="{{ url_for('crop_bp.crop_form') }}" class="active-link">Crop Advisor</a>
+        <a href="{{ url_for('disease_bp.disease_index') }}">Leaf Scan</a>
+        <a href="{{ url_for('telemetry_bp.telemetry_dashboard') }}">Sensor Node</a>
+        <a href="{{ url_for('model_insights') }}">Insights</a>
+        <a href="{{ url_for('logout') }}"><i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 6px;"></i>Logout ({{ username }})</a>
+    </div>
+</div>
+
+<div class="wrap">
+    <h1 data-i18n="crop.title">Crop Advisor</h1>
+    <p class="sub" data-i18n="crop.subtitle">Two ways to get a recommendation: the standard 7-feature scientific model, or the Regional Advisor trained on real Karnataka-region farm data.</p>
+
+    <div class="advisor-tabs">
+        <button class="advisor-tab active" id="tabScientific" onclick="switchAdvisorTab('scientific')" data-i18n="crop.tabScientific"><i class="fa-solid fa-flask" style="margin-right: 6px;"></i>Scientific (N-P-K)</button>
+        <button class="advisor-tab" id="tabRegional" onclick="switchAdvisorTab('regional')" data-i18n="crop.tabRegional"><i class="fa-solid fa-map-location-dot" style="margin-right: 6px;"></i>Regional (Karnataka data)</button>
+    </div>
+
+    <div id="panelScientific" class="advisor-panel active">
+    <div class="grid">
+        <div class="card">
+            <h3 data-i18n="crop.soilInputsHeading">Soil &amp; climate inputs</h3>
+            <form id="cropForm">
+                <div class="field"><label data-i18n="crop.labelN">Nitrogen -- N (kg/ha)</label><input type="number" step="any" name="N" value="90" required></div>
+                <div class="field"><label data-i18n="crop.labelP">Phosphorus -- P (kg/ha)</label><input type="number" step="any" name="P" value="42" required></div>
+                <div class="field"><label data-i18n="crop.labelK">Potassium -- K (kg/ha)</label><input type="number" step="any" name="K" value="43" required></div>
+                <div class="field"><label data-i18n="crop.labelTemp">Temperature (&deg;C)</label><input type="number" step="any" name="temperature" value="25" required></div>
+                <div class="field"><label data-i18n="crop.labelHumidity">Humidity (%)</label><input type="number" step="any" name="humidity" value="80" required>
+                    <div class="hint" data-i18n="crop.sensorHint">Pre-fill this from the live sensor node's latest reading when available.</div>
+                </div>
+                <div class="field"><label data-i18n="crop.labelPh">Soil pH</label><input type="number" step="any" name="ph" value="6.5" required>
+                    <div class="hint">Pre-fill this from the live sensor node's latest reading when available.</div>
+                </div>
+                <div class="field"><label data-i18n="crop.labelRainfall">Rainfall (mm)</label><input type="number" step="any" name="rainfall" value="200" required></div>
+                <button type="submit" class="predict-btn" data-i18n="crop.recommendBtn"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 6px;"></i>Recommend Crops</button>
+            </form>
+            <div class="gap-note">
+                <span data-i18n="crop.gapNote">Input gap, as documented in the synopsis: the agreed sensor kit measures pH, temperature and humidity live, but not N, P, K or rainfall. Those four values are entered manually here (from a soil-health card / weather API) until the optional NPK probe add-on is fitted.</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 data-i18n="crop.top3Heading">Top 3 recommended crops</h3>
+            <div id="err"></div>
+            <div id="resultArea">
+                <div class="result-placeholder" id="placeholder" data-i18n="crop.placeholder">Fill in the readings and click Recommend to see results.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="compare-wrap">
+        <div class="card">
+            <h3 data-i18n="crop.modelComparisonHeading">Model comparison</h3>
+            <table class="compare-table" id="compareTable">
+                <thead><tr><th data-i18n="crop.thAlgorithm">Algorithm</th><th data-i18n="crop.thAccuracy">Hold-out accuracy</th><th data-i18n="crop.thPrediction">Prediction for these inputs</th></tr></thead>
+                <tbody id="compareBody"><tr><td colspan="3" class="unavailable" data-i18n="crop.runToCompare">Run a recommendation to compare all 5 models.</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
+    <div id="panelRegional" class="advisor-panel">
+    {% if regional_available %}
+    <div class="grid">
+        <div class="card">
+            <h3 data-i18n="crop.locationHeading">Location &amp; field conditions</h3>
+            <form id="regionalForm">
+                <div class="field"><label data-i18n="crop.labelLocation">Location</label>
+                    <select name="location" required>
+                        {% for loc in regional_categories.locations %}<option value="{{ loc }}">{{ loc }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="field"><label data-i18n="crop.labelSoilType">Soil type</label>
+                    <select name="soil_type" required>
+                        {% for s in regional_categories.soil_types %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="field"><label data-i18n="crop.labelIrrigation">Irrigation</label>
+                    <select name="irrigation" required>
+                        {% for i in regional_categories.irrigation %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="field"><label data-i18n="crop.labelRainfallYr">Rainfall (mm/yr)</label><span class="sensor-tag">sensor-ready</span>
+                    <input type="number" step="any" name="rainfall" value="2900" required>
+                    <div class="hint">Will auto-fill from the sensor node's rainfall estimate once hardware is connected.</div>
+                </div>
+                <div class="field"><label>Temperature (&deg;C)<span class="sensor-tag">sensor-ready</span></label>
+                    <input type="number" step="any" name="temperature" value="27" required>
+                    <div class="hint">Will auto-fill from the live DHT22 reading once hardware is connected.</div>
+                </div>
+                <div class="field"><label>Humidity (%)<span class="sensor-tag">sensor-ready</span></label>
+                    <input type="number" step="any" name="humidity" value="60" required>
+                    <div class="hint">Will auto-fill from the live DHT22 reading once hardware is connected.</div>
+                </div>
+                <button type="submit" class="predict-btn"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 6px;"></i>Recommend Crops</button>
+            </form>
+            <div class="note">
+                Trained on {{ regional_categories.locations|length }} Karnataka-region locations across real historical crop, yield and mandi price records. Confidence reflects how closely your inputs match observed conditions for each crop.
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 data-i18n="crop.top3Heading">Top 3 recommended crops</h3>
+            <div id="regionalErr" style="display:none;color:#c0392b;padding:10px;background:#fdecea;border-radius:8px;margin-bottom:12px;font-size:0.88rem;"></div>
+            <div id="regionalResultArea">
+                <div class="result-placeholder" data-i18n="crop.regionalPlaceholder">Select your location and field conditions, then click Recommend.</div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card regional-unavailable">
+        <span data-i18n="crop.regionalUnavailable">Regional advisor model not found. Run train_regional_advisor.py to build it from data/karnataka_crop_data.csv.</span>
+    </div>
+    {% endif %}
+    </div>
+</div>
+
+<script>
+function switchAdvisorTab(tab) {
+    document.getElementById('tabScientific').classList.toggle('active', tab === 'scientific');
+    document.getElementById('tabRegional').classList.toggle('active', tab === 'regional');
+    document.getElementById('panelScientific').classList.toggle('active', tab === 'scientific');
+    document.getElementById('panelRegional').classList.toggle('active', tab === 'regional');
+}
+
+document.getElementById('cropForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errBox = document.getElementById('err');
+    const resultArea = document.getElementById('resultArea');
+    errBox.style.display = 'none';
+    resultArea.innerHTML = '<div class="result-placeholder">' + (window.KrishiI18n ? KrishiI18n.t('crop.scoring') : 'Scoring 22 crops…') + '</div>';
+
+    const form = new FormData(e.target);
+    const payload = {};
+    for (const [k, v] of form.entries()) payload[k] = v;
+
+    try {
+        const res = await fetch("{{ url_for('crop_bp.api_predict_crop') }}", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            errBox.textContent = data.error || 'Something went wrong.';
+            errBox.style.display = 'block';
+            resultArea.innerHTML = '';
+            return;
+        }
+        let html = '';
+        data.top3.forEach((c, i) => {
+            html += `<div class="crop-row ${i===0 ? 'top':''}">
+                <span class="crop-name">${i+1}. ${c.crop}</span>
+                <span class="crop-conf">${c.confidence}%</span>
+            </div>`;
+        });
+        if (data.note) html += `<div class="note">${data.note}</div>`;
+        html += `<div class="note">Headline pick from <strong>${data.primary_model}</strong>.</div>`;
+        resultArea.innerHTML = html;
+
+        // Model comparison table
+        const body = document.getElementById('compareBody');
+        const metrics = data.model_metrics || {};
+        const preds = data.model_predictions || {};
+        const labels = data.model_labels || {};
+        let rows = '';
+        Object.keys(labels).forEach(key => {
+            const m = metrics[key] || {};
+            const p = preds[key] || {};
+            const isBest = key === data.best_model;
+            const acc = m.available ? `${m.accuracy}%` : `<span class="unavailable">${m.reason || 'unavailable'}</span>`;
+            const pred = p.error ? `<span class="unavailable">${p.error}</span>` : (p.crop ? `${p.crop}${p.confidence != null ? ' ('+p.confidence+'%)' : ''}` : '--');
+            rows += `<tr class="${isBest ? 'best' : ''}"><td>${labels[key]}</td><td>${acc}</td><td>${pred}</td></tr>`;
+        });
+        body.innerHTML = rows || '<tr><td colspan="3" class="unavailable">No models loaded.</td></tr>';
+    } catch (err) {
+        errBox.textContent = (window.KrishiI18n ? KrishiI18n.t('crop.serverUnreachable') : 'Could not reach the server.');
+        errBox.style.display = 'block';
+    }
+});
+
+const regionalForm = document.getElementById('regionalForm');
+if (regionalForm) {
+    regionalForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errBox = document.getElementById('regionalErr');
+        const resultArea = document.getElementById('regionalResultArea');
+        errBox.style.display = 'none';
+        resultArea.innerHTML = '<div class="result-placeholder">' + (window.KrishiI18n ? KrishiI18n.t('crop.regionalMatching') : 'Matching against real Karnataka farm records…') + '</div>';
+
+        const form = new FormData(e.target);
+        const payload = {};
+        for (const [k, v] of form.entries()) payload[k] = v;
+
+        try {
+            const res = await fetch("{{ url_for('crop_bp.api_predict_regional_crop') }}", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                errBox.textContent = data.error || 'Something went wrong.';
+                errBox.style.display = 'block';
+                resultArea.innerHTML = '';
+                return;
+            }
+
+            const fmtMoney = (v) => v == null ? '--' : '₹' + Math.round(v).toLocaleString('en-IN');
+            const fmtNum = (v) => v == null ? '--' : Math.round(v).toLocaleString('en-IN');
+
+            let html = '';
+            data.top3.forEach((c, i) => {
+                html += `<div class="regional-crop-row ${i===0 ? 'top':''}">
+                    <div class="rc-head">
+                        <span class="crop-name">${i+1}. ${c.crop}</span>
+                        <span class="crop-conf">${c.confidence}%</span>
+                    </div>
+                    <div class="rc-stats">
+                        <div>Typical yield<b>${fmtNum(c.avg_yield)}</b></div>
+                        <div>Typical price<b>${fmtMoney(c.avg_price)}</b></div>
+                        <div>Seen mostly in<b>${(c.common_locations||[]).slice(0,2).join(', ') || '--'}</b></div>
+                        <div>Based on<b>${c.sample_count || 0} records</b></div>
+                    </div>
+                </div>`;
+            });
+            if (data.limiting_parameter) {
+                html += `<div class="note">The strongest driver of this ranking was <strong>${data.limiting_parameter}</strong>.</div>`;
+            }
+            html += `<div class="note">Regional Advisor trained on ${data.trained_on || '~3,000'} real farm records across Karnataka. Yield and price figures are historical averages for the recommended crop, not a forecast.</div>`;
+            resultArea.innerHTML = html;
+        } catch (err) {
+            errBox.textContent = (window.KrishiI18n ? KrishiI18n.t('crop.serverUnreachable') : 'Could not reach the server.');
+            errBox.style.display = 'block';
+        }
+    });
+}
+</script>
+
+
+
+
+<script src="{{ url_for('static', filename='js/lang-toggle.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+<script src="{{ url_for('static', filename='js/voice-assistant.js') }}"></script>
+</body>
+</html>

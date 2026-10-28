@@ -1,0 +1,33 @@
+{
+  "dataset": {
+    "n_samples": 2200,
+    "n_features": 7,
+    "n_classes": 22,
+    "note": "Updated 2,200-sample dataset - 7 features - 22 crop classes"
+  },
+  "random_forest": {
+    "available": true,
+    "accuracy": 92.73
+  },
+  "decision_tree": {
+    "available": true,
+    "accuracy": 87.73
+  },
+  "logistic_regression": {
+    "available": true,
+    "accuracy": 92.27
+  },
+  "polynomial_logistic": {
+    "available": true,
+    "accuracy": 93.86
+  },
+  "xgboost": {
+    "available": false,
+    "reason": "missing dependency: No module named 'xgboost'"
+  },
+  "best_model": {
+    "key": "polynomial_logistic",
+    "label": "Polynomial Logistic Regression",
+    "accuracy": 93.86
+  }
+}
