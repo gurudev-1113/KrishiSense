@@ -29,6 +29,11 @@ import secrets
 import warnings
 import json
 import gzip
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 warnings.filterwarnings('ignore')
 
 MODEL_DIR = "saved_models"
@@ -43,7 +48,7 @@ HISTORY_DAYS = 365
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.secret_key = secrets.token_hex(16)
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(16))
 
 # Admin panel: CSV upload -> retrain models -> live reload (see admin_training.py)
 from admin_training import admin_bp
@@ -2091,10 +2096,14 @@ if __name__ == "__main__":
 
     start_simulator_if_enabled()
 
+    host = os.environ.get('HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
+
     app.run(
-        debug=False, 
-        host='0.0.0.0', 
-        port=5000, 
+        debug=debug, 
+        host=host, 
+        port=port, 
         use_reloader=False,
         threaded=True
     )
