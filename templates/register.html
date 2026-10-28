@@ -524,7 +524,42 @@
         {% endwith %}
 
         <!-- Registration Form -->
-        <form method="POST" id="registerForm" autocomplete="off">
+        <form method="POST" id="registerForm" autocomplete="off" enctype="multipart/form-data">
+            <!-- Profile Photo Selection -->
+            <div class="form-group" style="margin-bottom: 22px;">
+                <label><span id="profilePhotoLabel">Profile Photo</span> <span class="optional" id="optionalPhotoLabel">(Optional)</span></label>
+                
+                <div style="display:flex; align-items:center; gap:16px; margin-top:8px; background:rgba(248,250,252,0.85); padding:12px 14px; border-radius:14px; border:1px solid #e2e8f0;">
+                    <!-- Preview Circle -->
+                    <div style="position:relative; width:62px; height:62px; flex-shrink:0; cursor:pointer;" onclick="document.getElementById('profileImageInput').click();" title="Click to upload custom photo">
+                        <img id="avatarPreview" src="/static/img/default-avatar.png" alt="Profile Preview" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2.5px solid #10b981; box-shadow:0 4px 12px rgba(16,185,129,0.25);">
+                        <span style="position:absolute; bottom:-2px; right:-2px; width:22px; height:22px; border-radius:50%; background:#f59e0b; color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.65rem; border:2px solid #fff; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+                            <i class="fa-solid fa-camera"></i>
+                        </span>
+                    </div>
+
+                    <!-- Presets & Upload -->
+                    <div style="flex:1;">
+                        <div style="font-size:0.75rem; color:#64748b; font-weight:600; margin-bottom:6px;" id="choosePresetLabel">Choose avatar or upload photo:</div>
+                        
+                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            <img src="/static/img/default-avatar.png" class="preset-choice-btn" data-url="/static/img/default-avatar.png" alt="Default" style="width:32px; height:32px; border-radius:50%; object-fit:cover; cursor:pointer; border:2px solid #10b981; transition:all 0.2s;" title="Default Avatar">
+                            <img src="/static/img/avatars/farmer1.png" class="preset-choice-btn" data-url="/static/img/avatars/farmer1.png" alt="Farmer 1" style="width:32px; height:32px; border-radius:50%; object-fit:cover; cursor:pointer; border:2px solid transparent; transition:all 0.2s;" title="Farmer 1">
+                            <img src="/static/img/avatars/agronomist.png" class="preset-choice-btn" data-url="/static/img/avatars/agronomist.png" alt="Agronomist" style="width:32px; height:32px; border-radius:50%; object-fit:cover; cursor:pointer; border:2px solid transparent; transition:all 0.2s;" title="Agronomist">
+                            <img src="/static/img/avatars/farmer2.png" class="preset-choice-btn" data-url="/static/img/avatars/farmer2.png" alt="Farmer 2" style="width:32px; height:32px; border-radius:50%; object-fit:cover; cursor:pointer; border:2px solid transparent; transition:all 0.2s;" title="Farmer 2">
+                            <img src="/static/img/avatars/tech.png" class="preset-choice-btn" data-url="/static/img/avatars/tech.png" alt="Tech" style="width:32px; height:32px; border-radius:50%; object-fit:cover; cursor:pointer; border:2px solid transparent; transition:all 0.2s;" title="Tech Expert">
+                            
+                            <button type="button" onclick="document.getElementById('profileImageInput').click();" style="padding:4px 10px; border-radius:8px; background:#0a3d24; color:#fff; border:none; font-size:0.72rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px; margin-left:auto;">
+                                <i class="fa-solid fa-upload"></i> <span id="uploadBtnLabel">Upload</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" name="profile_preset" id="profilePreset" value="/static/img/default-avatar.png">
+                <input type="file" name="profile_image" id="profileImageInput" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;">
+            </div>
+
             <!-- Username -->
             <div class="form-group">
                 <label for="username"><span id="usernameLabel">Username</span> <span class="required">*</span></label>
@@ -597,6 +632,9 @@
 <script>
 const translations = {
     'en': {
+        'profilePhotoLabel': 'Profile Photo',
+        'choosePresetLabel': 'Choose avatar or upload photo:',
+        'uploadBtnLabel': 'Upload',
         'registerSubtitle': 'Create your account to get started',
         'usernameLabel': 'Username',
         'emailLabel': 'Email',
@@ -623,6 +661,9 @@ const translations = {
         'passwordTooShortAlert': 'Password must be at least 6 characters long!'
     },
     'kn': {
+        'profilePhotoLabel': 'ಪ್ರೊಫೈಲ್ ಫೋಟೋ',
+        'choosePresetLabel': 'ಅವತಾರವನ್ನು ಆರಿಸಿ ಅಥವಾ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ:',
+        'uploadBtnLabel': 'ಅಪ್‌ಲೋಡ್',
         'registerSubtitle': 'ಪ್ರಾರಂಭಿಸಲು ನಿಮ್ಮ ಖಾತೆ ರಚಿಸಿ',
         'usernameLabel': 'ಬಳಕೆದಾರ ಹೆಸರು',
         'emailLabel': 'ಇಮೇಲ್',
@@ -658,6 +699,33 @@ var currentLang = 'en'; // page is authored in English; Google Translate handles
 <!-- JavaScript for Password Strength & Matching -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Avatar Preset & Upload logic
+    const profileInput = document.getElementById('profileImageInput');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const profilePreset = document.getElementById('profilePreset');
+    const presetBtns = document.querySelectorAll('.preset-choice-btn');
+
+    presetBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            presetBtns.forEach(b => b.style.borderColor = 'transparent');
+            this.style.borderColor = '#10b981';
+            const url = this.getAttribute('data-url');
+            if (avatarPreview) avatarPreview.src = url;
+            if (profilePreset) profilePreset.value = url;
+            if (profileInput) profileInput.value = '';
+        });
+    });
+
+    if (profileInput) {
+        profileInput.addEventListener('change', function(e) {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                presetBtns.forEach(b => b.style.borderColor = 'transparent');
+                if (avatarPreview) avatarPreview.src = URL.createObjectURL(file);
+                if (profilePreset) profilePreset.value = '';
+            }
+        });
+    }
     const password = document.getElementById('password');
     const confirmPassword = document.getElementById('confirm_password');
     const strengthBar = document.getElementById('strengthBar');

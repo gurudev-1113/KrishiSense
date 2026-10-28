@@ -992,7 +992,11 @@
           <button type="button" class="lang-btn active" data-lang="en">EN</button>
           <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
         </div>
-            <span class="admin-welcome"><i class="fa-solid fa-user-shield" style="margin-right:4px;"></i>Hi, <strong>Admin</strong></span>
+            <div class="user-profile-badge" id="openProfileModalBtn" title="Click to view & change profile photo">
+                <img src="{{ profile_image }}" alt="Admin" class="topbar-user-avatar" onerror="this.onerror=null; this.src='/static/img/avatars/tech.png';">
+                <strong>Admin</strong>
+                <i class="fa-solid fa-camera" style="font-size:0.68rem; color:#f59e0b;" title="Change Photo"></i>
+            </div>
             <a href="{{ url_for('model_insights') }}" class="btn-back"><i class="fas fa-chart-line"></i> Insights</a>
             <a href="{{ url_for('dashboard') }}" class="btn-back">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard

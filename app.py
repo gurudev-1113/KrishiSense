@@ -168,26 +168,62 @@ def init_user_db():
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             email TEXT,
+            profile_image TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_login TIMESTAMP
         )
     ''')
+    cursor.execute("PRAGMA table_info(users)")
+    cols = [r[1] for r in cursor.fetchall()]
+    if 'profile_image' not in cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN profile_image TEXT")
     conn.commit()
     conn.close()
+
+def get_user_profile_image(username):
+    """Retrieve profile image path for a user"""
+    if not username or username == 'guest':
+        return '/static/img/default-avatar.png'
+    try:
+        conn = sqlite3.connect(USER_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT profile_image FROM users WHERE LOWER(username) = LOWER(?)", (str(username),))
+        row = cursor.fetchone()
+        conn.close()
+        if row and row[0]:
+            return row[0]
+    except Exception as e:
+        print(f"Error fetching profile image: {e}")
+    return '/static/img/default-avatar.png'
+
+def set_user_profile_image(username, image_path):
+    """Update profile image for a user"""
+    if not username:
+        return False
+    try:
+        conn = sqlite3.connect(USER_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET profile_image = ? WHERE LOWER(username) = LOWER(?)", (image_path, str(username)))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error updating profile image: {e}")
+        return False
 
 def hash_password(password):
     """Hash password using SHA256"""
     return hashlib.sha256(password.encode()).hexdigest()
 
-def create_user(username, password, email=None):
+def create_user(username, password, email=None, profile_image=None):
     """Create a new user"""
     conn = sqlite3.connect(USER_DB_PATH)
     cursor = conn.cursor()
     try:
         hashed = hash_password(password)
         cursor.execute(
-            "INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
-            (username, hashed, email)
+            "INSERT INTO users (username, password, email, profile_image) VALUES (?, ?, ?, ?)",
+            (username, hashed, email, profile_image)
         )
         conn.commit()
         conn.close()
@@ -202,7 +238,7 @@ def verify_user(username, password):
     cursor = conn.cursor()
     hashed = hash_password(password)
     cursor.execute(
-        "SELECT id, username FROM users WHERE username = ? AND password = ?",
+        "SELECT id, username, profile_image FROM users WHERE username = ? AND password = ?",
         (username, hashed)
     )
     user = cursor.fetchone()
@@ -1129,8 +1165,9 @@ def login():
             session['user_id'] = 'admin'
             session['username'] = 'admin'
             session['is_admin'] = True
+            session['profile_image'] = '/static/img/avatars/tech.png'
             from blueprints.assistant_module import log_activity
-            log_activity("admin", "login", "Admin logged in", page="/admin")
+            log_activity("admin", "login", "Admin logged in", page="/admin", profile_image='/static/img/avatars/tech.png')
             flash('Welcome back, Admin!', 'success')
             return redirect(url_for('admin_dashboard'))
         # --- end admin shortcut ---
@@ -1139,9 +1176,11 @@ def login():
         if user:
             session['user_id'] = user[0]
             session['username'] = user[1]
+            user_avatar = user[2] if len(user) > 2 and user[2] else get_user_profile_image(user[1])
+            session['profile_image'] = user_avatar
             update_last_login(username)
             from blueprints.assistant_module import log_activity
-            log_activity(user[1], "login", f"User {user[1]} logged in", page="/dashboard")
+            log_activity(user[1], "login", f"User {user[1]} logged in", page="/dashboard", profile_image=user_avatar)
             flash('Login successful!', 'success')
             return redirect(url_for('dashboard'))
         else:
@@ -1156,6 +1195,8 @@ def register():
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         email = request.form.get('email')
+        profile_preset = request.form.get('profile_preset')
+        profile_file = request.files.get('profile_image')
         
         if not username or not password:
             flash('Username and password are required!', 'danger')
@@ -1168,8 +1209,27 @@ def register():
         if len(password) < 6:
             flash('Password must be at least 6 characters!', 'danger')
             return render_template('register.html')
+
+        # Determine profile image URL
+        profile_image_url = None
+        if profile_file and profile_file.filename:
+            ext = os.path.splitext(profile_file.filename)[1].lower()
+            if ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif']:
+                upload_dir = os.path.join(app.static_folder, 'uploads', 'avatars')
+                os.makedirs(upload_dir, exist_ok=True)
+                clean_name = f"avatar_{re.sub(r'[^a-zA-Z0-9_]', '', username)}_{int(datetime.now().timestamp())}{ext}"
+                save_dest = os.path.join(upload_dir, clean_name)
+                profile_file.save(save_dest)
+                profile_image_url = f"/static/uploads/avatars/{clean_name}"
+        elif profile_preset:
+            profile_image_url = profile_preset
+            
+        if not profile_image_url:
+            profile_image_url = "/static/img/default-avatar.png"
         
-        if create_user(username, password, email):
+        if create_user(username, password, email, profile_image_url):
+            from blueprints.assistant_module import log_activity
+            log_activity(username, "register", f"User {username} registered", page="/register", profile_image=profile_image_url)
             flash('Registration successful! Please login.', 'success')
             return redirect(url_for('login'))
         else:
@@ -1232,6 +1292,62 @@ def optimize_and_compress(response):
                         response.headers['Content-Length'] = len(compressed)
                         response.headers['Vary'] = 'Accept-Encoding'
     return response
+
+
+# ------------------------------------------------------------
+# Global Context Processor: Injects username and profile_image
+# ------------------------------------------------------------
+@app.context_processor
+def inject_user_context():
+    uname = session.get('username')
+    pimg = session.get('profile_image')
+    if uname and not pimg:
+        pimg = get_user_profile_image(uname)
+        session['profile_image'] = pimg
+    return dict(
+        username=uname,
+        profile_image=pimg or '/static/img/default-avatar.png'
+    )
+
+@app.route('/api/user/profile-image', methods=['POST'])
+def api_update_profile_image():
+    if 'username' not in session:
+        return jsonify({"success": False, "error": "Unauthorized"}), 401
+    
+    username = session['username']
+    profile_file = request.files.get('profile_image')
+    preset = request.form.get('preset')
+    
+    image_url = None
+    if profile_file and profile_file.filename:
+        ext = os.path.splitext(profile_file.filename)[1].lower()
+        if ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif']:
+            upload_dir = os.path.join(app.static_folder, 'uploads', 'avatars')
+            os.makedirs(upload_dir, exist_ok=True)
+            clean_name = f"avatar_{re.sub(r'[^a-zA-Z0-9_]', '', username)}_{int(datetime.now().timestamp())}{ext}"
+            save_dest = os.path.join(upload_dir, clean_name)
+            profile_file.save(save_dest)
+            image_url = f"/static/uploads/avatars/{clean_name}"
+    elif preset:
+        image_url = preset
+
+    if not image_url:
+        return jsonify({"success": False, "error": "No image provided"}), 400
+
+    set_user_profile_image(username, image_url)
+    session['profile_image'] = image_url
+
+    from blueprints.assistant_module import log_activity
+    log_activity(
+        username=username,
+        action_type="profile_update",
+        description="Updated profile picture",
+        details=f"Avatar: {image_url}",
+        page=request.referrer or "/dashboard",
+        profile_image=image_url
+    )
+
+    return jsonify({"success": True, "profile_image": image_url})
 
 # ------------------------------------------------------------
 # Main Routes
@@ -1624,6 +1740,20 @@ def api_predict():
         "best_model_mae": best_model_mae
     }
     
+    # Log feature entry into user activities with profile image
+    try:
+        from blueprints.assistant_module import log_activity
+        log_activity(
+            username=session.get("username", "guest"),
+            action_type="price_prediction",
+            description=f"Predicted {commodity} @ {market}: ₹{predicted_price:.2f}",
+            details=f"Recommendation: {action}, Expected change: {price_diff_abs:+.1f}%",
+            page="/dashboard",
+            profile_image=session.get("profile_image")
+        )
+    except Exception as e:
+        print(f"Could not log predict activity: {e}")
+
     # Convert any remaining numpy types to Python native types
     response = convert_to_serializable(response)
     return jsonify(response)

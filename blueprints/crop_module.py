@@ -228,6 +228,22 @@ def api_predict_crop():
                 best_acc = m["accuracy"]
                 best_model_key = key
 
+    # Log feature activity entry with user profile image
+    try:
+        from blueprints.assistant_module import log_activity
+        rec_crop = top3[0]["crop"] if top3 else "Unknown"
+        username = session.get("username", "guest")
+        log_activity(
+            username=username,
+            action_type="crop_recommendation",
+            description=f"Recommended Crop: {rec_crop}",
+            details=f"Top 3: {', '.join([c['crop'] for c in top3[:3]])}",
+            page="/crop",
+            profile_image=session.get("profile_image")
+        )
+    except Exception as e:
+        print(f"Could not log crop activity: {e}")
+
     return jsonify({
         "top3": top3,
         "primary_model": MODEL_LABELS.get(primary_key, primary_key),

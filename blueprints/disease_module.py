@@ -228,6 +228,22 @@ def disease_predict():
     except Exception as e:
         print(f"Could not log disease scan: {e}")
 
+    # Log feature activity entry with user profile image
+    try:
+        from blueprints.assistant_module import log_activity
+        from flask import session
+        username = session.get("username", "guest")
+        log_activity(
+            username=username,
+            action_type="leaf_scan",
+            description=f"Leaf Scan Diagnosis: {display_name}",
+            details=f"Confidence: {confidence * 100:.1f}%, Status: {'Healthy' if is_healthy else 'Infected'}",
+            page="/disease",
+            profile_image=session.get("profile_image")
+        )
+    except Exception as e:
+        print(f"Could not log disease activity: {e}")
+
     return jsonify({
         "success": True,
         "image_path": image_url,

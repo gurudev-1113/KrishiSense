@@ -20,6 +20,16 @@
   let recognition = null;
   let isMuted = localStorage.getItem(STORAGE_MUTED_KEY) === "true";
   let activeTab = "chat"; // 'chat' or 'activity'
+  function getUserAvatar() {
+    if (window.__KRISHI_USER_AVATAR__) return window.__KRISHI_USER_AVATAR__;
+    const topbarImg = document.querySelector(".topbar-user-avatar");
+    if (topbarImg && topbarImg.src) {
+      window.__KRISHI_USER_AVATAR__ = topbarImg.src;
+      return topbarImg.src;
+    }
+    return "/static/img/default-avatar.png";
+  }
+
 
   function getLang() {
     return localStorage.getItem(STORAGE_LANG_KEY) || "en";
@@ -374,11 +384,19 @@
         </div>
       `;
     } else {
+      const uAvatar = getUserAvatar();
       msgDiv.innerHTML = `
-        <div class="va-msg-bubble">
-          ${formatted}
-          ${navHtml}
-          <div class="va-msg-time">${timeStr}</div>
+        <div style="display:flex; gap:8px; align-items:flex-start; justify-content:flex-end;">
+          <div style="flex:1; display:flex; flex-direction:column; align-items:flex-end;">
+            <div class="va-msg-bubble">
+              ${formatted}
+              ${navHtml}
+            </div>
+            <div class="va-msg-time">${timeStr}</div>
+          </div>
+          <div class="va-user-avatar-badge" title="You">
+            <img src="${uAvatar}" alt="User" onerror="this.onerror=null; this.src='/static/img/default-avatar.png';">
+          </div>
         </div>
       `;
     }
@@ -512,14 +530,22 @@
             };
             typeLabel = knTypes[typeClass] || typeLabel;
           }
+          const itemAvatar = item.profile_image || (data.profile_image) || getUserAvatar();
           html += `
             <div class="va-activity-item">
-              <div class="va-activity-top">
-                <span class="va-act-type ${typeClass}">${typeLabel}</span>
-                <span class="va-activity-time">${item.created_at || ""}</span>
+              <div style="display:flex; gap:10px; align-items:flex-start;">
+                <div class="va-act-avatar">
+                  <img src="${itemAvatar}" alt="${item.username || 'User'}" onerror="this.onerror=null; this.src='/static/img/default-avatar.png';">
+                </div>
+                <div style="flex:1; min-width:0;">
+                  <div class="va-activity-top">
+                    <span class="va-act-type ${typeClass}">${typeLabel}</span>
+                    <span class="va-activity-time">${item.created_at || ""}</span>
+                  </div>
+                  <div class="va-activity-desc">${item.description || ""}</div>
+                  ${item.details ? `<div class="va-activity-detail">${item.details}</div>` : ""}
+                </div>
               </div>
-              <div class="va-activity-desc">${item.description || ""}</div>
-              ${item.details ? `<div class="va-activity-detail">${item.details}</div>` : ""}
             </div>
           `;
         });
@@ -811,8 +837,194 @@
     }).catch(() => {});
   }
 
+
+  // Inject Profile Modal Dialog into document
+  function injectProfileModal() {
+    if (document.getElementById("krishiProfileModal")) return;
+    const isKn = getLang() === "kn";
+    const modal = document.createElement("div");
+    modal.className = "krishi-modal-backdrop";
+    modal.id = "krishiProfileModal";
+    modal.innerHTML = `
+      <div class="krishi-profile-card">
+        <div class="krishi-profile-header">
+          <h3><i class="fa-solid fa-user-gear" style="color:var(--va-gold);"></i> <span id="pmTitle">${isKn ? 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಚಿತ್ರ ಬದಲಿಸಿ' : 'Your Profile Photo'}</span></h3>
+          <button type="button" class="krishi-profile-close" id="pmCloseBtn">&times;</button>
+        </div>
+        <div class="krishi-profile-body">
+          <div class="krishi-profile-preview-box">
+            <div class="krishi-profile-circle-wrap" id="pmPreviewClick" title="Click to upload custom photo">
+              <img src="${getUserAvatar()}" alt="Profile Preview" class="krishi-profile-large-img" id="pmLargePreview" onerror="this.onerror=null; this.src='/static/img/default-avatar.png';">
+              <span class="krishi-profile-camera-badge"><i class="fa-solid fa-camera"></i></span>
+            </div>
+            <div class="krishi-profile-username" id="pmUsernameDisplay">${document.querySelector('.user-profile-badge strong')?.textContent || 'User'}</div>
+            <span class="krishi-profile-role-badge"><i class="fa-solid fa-seedling"></i> KrishiSense Member</span>
+          </div>
+
+          <div style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:6px;" id="pmPresetHeader">
+            ${isKn ? 'ಅವತಾರವನ್ನು ಆರಿಸಿ:' : 'Choose a preset avatar:'}
+          </div>
+          <div class="krishi-preset-grid">
+            <img src="/static/img/default-avatar.png" class="krishi-preset-avatar" data-url="/static/img/default-avatar.png" alt="Default" title="Classic Avatar">
+            <img src="/static/img/avatars/farmer1.png" class="krishi-preset-avatar" data-url="/static/img/avatars/farmer1.png" alt="Farmer 1" title="Farmer (Green)">
+            <img src="/static/img/avatars/agronomist.png" class="krishi-preset-avatar" data-url="/static/img/avatars/agronomist.png" alt="Agronomist" title="Agronomist (Blue)">
+            <img src="/static/img/avatars/farmer2.png" class="krishi-preset-avatar" data-url="/static/img/avatars/farmer2.png" alt="Farmer 2" title="Farmer (Gold)">
+            <img src="/static/img/avatars/tech.png" class="krishi-preset-avatar" data-url="/static/img/avatars/tech.png" alt="Tech" title="Tech Specialist">
+          </div>
+
+          <div style="font-size:0.8rem; font-weight:700; color:#334155; margin-top:14px;" id="pmUploadHeader">
+            ${isKn ? 'ಅಥವಾ ನಿಮ್ಮ ಸಾಧನದಿಂದ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ:' : 'Or upload photo from device:'}
+          </div>
+          <div class="krishi-profile-upload-bar">
+            <button type="button" class="krishi-btn-upload" id="pmBrowseBtn">
+              <i class="fa-solid fa-cloud-arrow-up" style="color:#10b981;"></i> <span id="pmBrowseLabel">${isKn ? 'ಫೋಟೋ ಆಯ್ಕೆಮಾಡಿ (PNG, JPG, WebP)' : 'Browse Photo (PNG, JPG, WebP)'}</span>
+            </button>
+            <input type="file" id="pmFileInput" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;">
+          </div>
+
+          <div id="pmStatusMsg" style="margin-top:12px; font-size:0.82rem; text-align:center; display:none;"></div>
+
+          <div class="krishi-profile-actions">
+            <button type="button" class="krishi-btn-cancel-avatar" id="pmCancelBtn">${isKn ? 'ರದ್ದುಮಾಡಿ' : 'Cancel'}</button>
+            <button type="button" class="krishi-btn-save-avatar" id="pmSaveBtn">
+              <i class="fa-solid fa-check"></i> <span id="pmSaveLabel">${isKn ? 'ಉಳಿಸಿ' : 'Save Photo'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    bindProfileModalEvents();
+  }
+
+  function bindProfileModalEvents() {
+    const modal = document.getElementById("krishiProfileModal");
+    if (!modal) return;
+    const closeBtn = document.getElementById("pmCloseBtn");
+    const cancelBtn = document.getElementById("pmCancelBtn");
+    const browseBtn = document.getElementById("pmBrowseBtn");
+    const fileInput = document.getElementById("pmFileInput");
+    const previewImg = document.getElementById("pmLargePreview");
+    const saveBtn = document.getElementById("pmSaveBtn");
+    const statusMsg = document.getElementById("pmStatusMsg");
+    const presets = modal.querySelectorAll(".krishi-preset-avatar");
+    let chosenPreset = null;
+    let chosenFile = null;
+
+    function openModal() {
+      previewImg.src = getUserAvatar();
+      chosenPreset = null;
+      chosenFile = null;
+      presets.forEach(p => p.classList.remove("selected"));
+      if (statusMsg) statusMsg.style.display = "none";
+      modal.classList.add("open");
+    }
+
+    function closeModal() {
+      modal.classList.remove("open");
+    }
+
+    closeBtn?.addEventListener("click", closeModal);
+    cancelBtn?.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    document.querySelectorAll(".user-profile-badge, #openProfileModalBtn, .topbar-user-avatar").forEach(el => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        openModal();
+      });
+    });
+
+    presets.forEach(p => {
+      p.addEventListener("click", () => {
+        presets.forEach(x => x.classList.remove("selected"));
+        p.classList.add("selected");
+        chosenPreset = p.getAttribute("data-url");
+        chosenFile = null;
+        if (fileInput) fileInput.value = "";
+        previewImg.src = chosenPreset;
+      });
+    });
+
+    if (browseBtn && fileInput) {
+      browseBtn.addEventListener("click", () => fileInput.click());
+      document.getElementById("pmPreviewClick")?.addEventListener("click", () => fileInput.click());
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          chosenFile = file;
+          chosenPreset = null;
+          presets.forEach(x => x.classList.remove("selected"));
+          previewImg.src = URL.createObjectURL(file);
+        }
+      });
+    }
+
+    if (saveBtn) {
+      saveBtn.addEventListener("click", () => {
+        if (!chosenFile && !chosenPreset) {
+          statusMsg.style.display = "block";
+          statusMsg.style.color = "#f59e0b";
+          statusMsg.textContent = getLang() === "kn" ? "ದಯವಿಟ್ಟು ಹೊಸ ಅವತಾರ ಅಥವಾ ಫೋಟೋವನ್ನು ಆಯ್ಕೆಮಾಡಿ." : "Please choose a preset avatar or upload a new photo.";
+          return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+
+        const formData = new FormData();
+        if (chosenFile) {
+          formData.append("profile_image", chosenFile);
+        } else if (chosenPreset) {
+          formData.append("preset", chosenPreset);
+        }
+
+        fetch("/api/user/profile-image", {
+          method: "POST",
+          body: formData
+        })
+          .then(r => r.json())
+          .then(data => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = `<i class="fa-solid fa-check"></i> Save Photo`;
+
+            if (data.success && data.profile_image) {
+              window.__KRISHI_USER_AVATAR__ = data.profile_image;
+              document.querySelectorAll(".topbar-user-avatar").forEach(img => {
+                img.src = data.profile_image;
+              });
+              previewImg.src = data.profile_image;
+              statusMsg.style.display = "block";
+              statusMsg.style.color = "#10b981";
+              statusMsg.textContent = getLang() === "kn" ? "✅ ಪ್ರೊಫೈಲ್ ಚಿತ್ರ ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ!" : "✅ Profile image updated successfully!";
+
+              setTimeout(() => {
+                closeModal();
+                loadActivities();
+              }, 900);
+            } else {
+              statusMsg.style.display = "block";
+              statusMsg.style.color = "#ef4444";
+              statusMsg.textContent = data.error || "Update failed.";
+            }
+          })
+          .catch(err => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = `<i class="fa-solid fa-check"></i> Save Photo`;
+            statusMsg.style.display = "block";
+            statusMsg.style.color = "#ef4444";
+            statusMsg.textContent = "Network error while saving avatar.";
+          });
+      });
+    }
+  }
+
   function init() {
     injectUI();
+    injectProfileModal();
     bindEvents();
     logCurrentPageView();
   }

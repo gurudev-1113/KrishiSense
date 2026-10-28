@@ -37,9 +37,14 @@ def init_activity_table():
                 description TEXT NOT NULL,
                 details TEXT,
                 page TEXT,
+                profile_image TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        cursor.execute("PRAGMA table_info(user_activities)")
+        cols = [r[1] for r in cursor.fetchall()]
+        if "profile_image" not in cols:
+            cursor.execute("ALTER TABLE user_activities ADD COLUMN profile_image TEXT")
         conn.commit()
         conn.close()
     except Exception as e:
@@ -47,16 +52,33 @@ def init_activity_table():
 
 init_activity_table()
 
-def log_activity(username, action_type, description, details=None, page=None):
+def get_user_avatar(username):
+    if not username or str(username).lower() == "guest":
+        return "/static/img/default-avatar.png"
+    try:
+        conn = sqlite3.connect(USER_DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT profile_image FROM users WHERE LOWER(username) = LOWER(?)", (str(username),))
+        row = cursor.fetchone()
+        conn.close()
+        if row and row[0]:
+            return row[0]
+    except Exception:
+        pass
+    return "/static/img/default-avatar.png"
+
+def log_activity(username, action_type, description, details=None, page=None, profile_image=None):
     if not username:
         username = "guest"
+    if not profile_image:
+        profile_image = get_user_avatar(username)
     try:
         conn = sqlite3.connect(USER_DB_PATH)
         cursor = conn.cursor()
         cursor.execute(
-            """INSERT INTO user_activities (username, action_type, description, details, page)
-               VALUES (?, ?, ?, ?, ?)""",
-            (username, action_type, description, details, page)
+            """INSERT INTO user_activities (username, action_type, description, details, page, profile_image)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (username, action_type, description, details, page, profile_image)
         )
         conn.commit()
         conn.close()
@@ -70,7 +92,7 @@ def get_activities(username, limit=30):
         cursor = conn.cursor()
         if not username or str(username).lower() == "guest":
             cursor.execute(
-                """SELECT id, action_type, description, details, page, created_at
+                """SELECT id, username, action_type, description, details, page, profile_image, created_at
                    FROM user_activities
                    WHERE username = 'guest' OR username IS NULL
                    ORDER BY id DESC LIMIT ?""",
@@ -78,7 +100,7 @@ def get_activities(username, limit=30):
             )
         else:
             cursor.execute(
-                """SELECT id, action_type, description, details, page, created_at
+                """SELECT id, username, action_type, description, details, page, profile_image, created_at
                    FROM user_activities
                    WHERE LOWER(username) = LOWER(?) OR username = 'guest'
                    ORDER BY id DESC LIMIT ?""",
@@ -86,6 +108,10 @@ def get_activities(username, limit=30):
             )
         rows = [dict(r) for r in cursor.fetchall()]
         conn.close()
+        # Backfill profile_image if empty on legacy rows
+        for r in rows:
+            if not r.get("profile_image"):
+                r["profile_image"] = get_user_avatar(r.get("username", username))
         return rows
     except Exception as e:
         print(f"[assistant] Activity fetch error: {e}")
@@ -579,12 +605,19 @@ def api_log_activity():
     description = data.get("description", "User performed an action")
     details = data.get("details", "")
     page = data.get("page", "")
+    profile_image = data.get("profile_image") or session.get("profile_image")
 
-    log_activity(username, action_type, description, details, page)
+    log_activity(username, action_type, description, details, page, profile_image)
     return jsonify({"success": True})
 
 @assistant_bp.route("/api/assistant/activities", methods=["GET"])
 def api_get_activities():
     username = session.get("username", "guest")
+    user_avatar = session.get("profile_image") or get_user_avatar(username)
     items = get_activities(username, limit=30)
-    return jsonify({"success": True, "activities": items, "username": username})
+    return jsonify({
+        "success": True,
+        "activities": items,
+        "username": username,
+        "profile_image": user_avatar
+    })
