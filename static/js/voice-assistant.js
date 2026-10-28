@@ -196,8 +196,15 @@
       <!-- Messages Area -->
       <div class="va-messages" id="vaMessages">
         <div class="va-msg bot">
-          <div class="va-msg-bubble" id="vaWelcomeMessage">
-            <!-- Rendered dynamically -->
+          <div style="display:flex; gap:8px; align-items:flex-start; width:100%;">
+            <div style="width:30px; height:30px; flex-shrink:0; border-radius:50%; background:#ffffff; border:1.5px solid #f59e0b; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.12);">
+              <img src="/static/img/krishi-bot-transparent.png?v=1" alt="Bot" style="width:100%; height:100%; object-fit:contain;">
+            </div>
+            <div style="flex:1;">
+              <div class="va-msg-bubble" id="vaWelcomeMessage">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -276,7 +283,7 @@
           <span class="va-chip" data-cmd="ಬೆಳೆ ಸಲಹೆಗಾರನಿಗೆ ಹೋಗಿ"><i class="fa-solid fa-seedling" style="color:#10b981;"></i> ಬೆಳೆ ಸಲಹೆಗಾರ</span>
           <span class="va-chip" data-cmd="ಎಲೆ ಸ್ಕ್ಯಾನ್ ತೆರೆಯಿರಿ"><i class="fa-solid fa-leaf" style="color:#059669;"></i> ಎಲೆ ಸ್ಕ್ಯಾನ್</span>
           <span class="va-chip" data-cmd="ಅಡಿಕೆ ಬೆಲೆ ಎಷ್ಟು?"><i class="fa-solid fa-chart-line" style="color:#f59e0b;"></i> ಮಂಡಿ ಬೆಲೆ</span>
-          <span class="va-chip" data-cmd="ಸೆನ್ಸಾರ್ ನೋಡ್ ತೆರೆಯಿರಿ"><i class="fa-solid fa-tower-broadcast" style="color:#0284c7;"></i> ಸೆನ್ಸಾರ್ ನೋಡ್</span>
+          <span class="va-chip" data-cmd="ಸೆನ್ಸಾರ್ ನೋಡ್ ತೆರೆಯಿರಿ"><i class="fa-solid fa-microchip" style="color:#0284c7;"></i> ಸೆನ್ಸಾರ್ ನೋಡ್</span>
           <span class="va-chip" data-cmd="ಮಣ್ಣಿನ ತೇವಾಂಶ ಎಷ್ಟು?"><i class="fa-solid fa-droplet" style="color:#06b6d4;"></i> ಮಣ್ಣಿನ ತೇವಾಂಶ?</span>
         `;
       } else {
@@ -284,7 +291,7 @@
           <span class="va-chip" data-cmd="open crop advisor"><i class="fa-solid fa-seedling" style="color:#10b981;"></i> Crop Advisor</span>
           <span class="va-chip" data-cmd="open leaf scan"><i class="fa-solid fa-leaf" style="color:#059669;"></i> Leaf Scan</span>
           <span class="va-chip" data-cmd="open price dss"><i class="fa-solid fa-chart-line" style="color:#f59e0b;"></i> Price DSS</span>
-          <span class="va-chip" data-cmd="open sensor node"><i class="fa-solid fa-tower-broadcast" style="color:#0284c7;"></i> Sensor Node</span>
+          <span class="va-chip" data-cmd="open sensor node"><i class="fa-solid fa-microchip" style="color:#0284c7;"></i> Sensor Node</span>
           <span class="va-chip" data-cmd="what is the soil moisture?"><i class="fa-solid fa-droplet" style="color:#06b6d4;"></i> Soil Moisture?</span>
         `;
       }
@@ -491,10 +498,24 @@
         let html = "";
         data.activities.forEach(item => {
           const typeClass = item.action_type || "page_view";
+          let typeLabel = typeClass.replace(/_/g, " ");
+          if (isKn) {
+            const knTypes = {
+              "tab_navigation": "ಟ್ಯಾಬ್ ಬದಲಾವಣೆ",
+              "chat_query": "ಸಹಾಯಕ ಚಾಟ್",
+              "page_view": "ಪುಟ ವೀಕ್ಷಣೆ",
+              "login": "ಲಾಗಿನ್",
+              "logout": "ನಿರ್ಗಮಿಸಿ",
+              "retrain": "ಮರು-ತರಬೇತಿ",
+              "prediction": "ಮುನ್ಸೂಚನೆ",
+              "user_action": "ಬಳಕೆದಾರ ಕ್ರಿಯೆ"
+            };
+            typeLabel = knTypes[typeClass] || typeLabel;
+          }
           html += `
             <div class="va-activity-item">
               <div class="va-activity-top">
-                <span class="va-act-type ${typeClass}">${typeClass.replace("_", " ")}</span>
+                <span class="va-act-type ${typeClass}">${typeLabel}</span>
                 <span class="va-activity-time">${item.created_at || ""}</span>
               </div>
               <div class="va-activity-desc">${item.description || ""}</div>
@@ -631,8 +652,12 @@
 
     const backdrop = document.getElementById("vaBackdrop");
 
+    const quickChips = document.getElementById("vaQuickChips");
+    const inputBox = document.querySelector(".va-input-box");
+
     function openAssistant() {
       win.classList.add("open");
+      fab.classList.add("va-launcher-hidden");
       if (backdrop && window.innerWidth <= 680) {
         backdrop.classList.add("open");
       }
@@ -644,6 +669,7 @@
 
     function closeAssistant() {
       win.classList.remove("open");
+      fab.classList.remove("va-launcher-hidden");
       if (backdrop) {
         backdrop.classList.remove("open");
       }
@@ -741,6 +767,8 @@
       tabActivity.classList.remove("active");
       document.getElementById("vaMessages").style.display = "flex";
       document.getElementById("vaActivityPanel").classList.remove("active");
+      if (quickChips) quickChips.style.display = "flex";
+      if (inputBox) inputBox.style.display = "flex";
     });
 
     tabActivity.addEventListener("click", () => {
@@ -749,6 +777,8 @@
       tabChat.classList.remove("active");
       document.getElementById("vaMessages").style.display = "none";
       document.getElementById("vaActivityPanel").classList.add("active");
+      if (quickChips) quickChips.style.display = "none";
+      if (inputBox) inputBox.style.display = "none";
       loadActivities();
     });
 

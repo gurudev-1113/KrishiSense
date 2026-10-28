@@ -63,20 +63,27 @@ def log_activity(username, action_type, description, details=None, page=None):
     except Exception as e:
         print(f"[assistant] Activity logging error: {e}")
 
-def get_activities(username, limit=25):
-    if not username:
-        return []
+def get_activities(username, limit=30):
     try:
         conn = sqlite3.connect(USER_DB_PATH)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute(
-            """SELECT id, action_type, description, details, page, created_at
-               FROM user_activities
-               WHERE username = ?
-               ORDER BY id DESC LIMIT ?""",
-            (username, limit)
-        )
+        if not username or str(username).lower() == "guest":
+            cursor.execute(
+                """SELECT id, action_type, description, details, page, created_at
+                   FROM user_activities
+                   WHERE username = 'guest' OR username IS NULL
+                   ORDER BY id DESC LIMIT ?""",
+                (limit,)
+            )
+        else:
+            cursor.execute(
+                """SELECT id, action_type, description, details, page, created_at
+                   FROM user_activities
+                   WHERE LOWER(username) = LOWER(?) OR username = 'guest'
+                   ORDER BY id DESC LIMIT ?""",
+                (str(username), limit)
+            )
         rows = [dict(r) for r in cursor.fetchall()]
         conn.close()
         return rows
@@ -518,8 +525,8 @@ def api_chat():
         log_activity(
             username=username,
             action_type="tab_navigation",
-            description=f"Switched to {nav_match['name']} tab via voice/chat",
-            details=f"Command: '{message}'",
+            description=f"{target_name} ಪುಟಕ್ಕೆ ಧ್ವನಿ/ಚಾಟ್ ಮೂಲಕ ಬದಲಾವಣೆ" if lang == "kn" else f"Switched to {nav_match['name']} tab via voice/chat",
+            details=f"ಆಜ್ಞೆ: '{message}'" if lang == "kn" else f"Command: '{message}'",
             page=nav_match["url"]
         )
 
@@ -546,11 +553,12 @@ def api_chat():
         reply_text, speech_text = get_expert_response(message, lang)
 
     # 3. Log user activity
+    q_snippet = message[:60] + "..." if len(message) > 60 else message
     log_activity(
         username=username,
         action_type="chat_query",
-        description=f"Asked: \"{message[:60]}...\"" if len(message) > 60 else f"Asked: \"{message}\"",
-        details=f"Response provided on page {current_page} (Language: {lang})",
+        description=f"ಕೇಳಿದ ಪ್ರಶ್ನೆ: \"{q_snippet}\"" if lang == "kn" else f"Asked: \"{q_snippet}\"",
+        details=f"ಉತ್ತರ ನೀಡಲಾಗಿದೆ (ಪುಟ: {current_page})" if lang == "kn" else f"Response provided on page {current_page} (Language: {lang})",
         page=current_page
     )
 

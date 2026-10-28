@@ -173,17 +173,16 @@
 /* Assistant Window */
 .va-window {
   position: fixed;
-  bottom: 148px;
+  bottom: 24px;
   right: 24px;
-  z-index: 9998;
-  width: 390px;
+  z-index: 10000;
+  width: 400px;
   max-width: calc(100vw - 32px);
-  height: 520px;
-  max-height: calc(100vh - 170px);
+  height: 560px;
+  max-height: calc(100vh - 40px);
   background: #ffffff;
   border-radius: 20px;
-  box-shadow: var(--va-shadow);
-  border: 1px solid rgba(10, 61, 36, 0.15);
+  box-shadow: 0 20px 50px -10px rgba(10, 61, 36, 0.35), 0 0 0 1px rgba(10, 61, 36, 0.12);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -191,13 +190,20 @@
   transform: translateY(20px) scale(0.95);
   pointer-events: none;
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .va-window.open {
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
+}
+
+/* Hide launcher & bubble when window is open on all devices */
+.va-robot-launcher.va-launcher-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0.6) translateY(24px) !important;
 }
 
 /* Header */
@@ -332,59 +338,74 @@
   display: flex;
   gap: 6px;
   overflow-x: auto;
+  overflow-y: hidden;
   background: #f8fafc;
   border-bottom: 1px solid #eef2f6;
-  scrollbar-width: thin;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-shrink: 0;
 }
 
 .va-quick-chips::-webkit-scrollbar {
-  height: 3px;
-}
-
-.va-quick-chips::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .va-chip {
   white-space: nowrap;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 600;
   background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #334155;
-  padding: 4px 10px;
-  border-radius: 14px;
+  padding: 5px 11px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .va-chip:hover {
   background: var(--va-primary-light);
   color: #ffffff;
   border-color: var(--va-primary-light);
+  transform: translateY(-1px);
 }
 
 /* Messages Area */
 .va-messages {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   background: #ffffff;
+  scrollbar-width: thin;
+}
+
+.va-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.va-messages::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .va-msg {
   display: flex;
   gap: 8px;
-  max-width: 88%;
-  font-size: 0.85rem;
-  line-height: 1.45;
+  max-width: 92%;
+  font-size: 0.86rem;
+  line-height: 1.55;
   animation: va-slide-up 0.2s ease-out;
 }
 
@@ -400,24 +421,31 @@
 
 .va-msg.bot {
   align-self: flex-start;
+  width: 100%;
 }
 
 .va-msg-bubble {
-  padding: 10px 14px;
-  border-radius: 14px;
+  padding: 11px 15px;
+  border-radius: 16px;
   word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.55;
 }
 
 .va-msg.user .va-msg-bubble {
   background: var(--va-primary);
   color: #ffffff;
   border-bottom-right-radius: 4px;
+  box-shadow: 0 2px 8px rgba(10, 61, 36, 0.2);
 }
 
 .va-msg.bot .va-msg-bubble {
-  background: #f1f5f9;
+  background: #f8fafc;
   color: var(--va-text);
   border-bottom-left-radius: 4px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
   border: 1px solid #e2e8f0;
 }
 
@@ -573,13 +601,18 @@
 
 .va-text-input {
   flex: 1;
-  padding: 9px 14px;
+  padding: 10px 16px;
   border-radius: 24px;
   border: 1.5px solid #cbd5e1;
-  font-size: 0.84rem;
-  font-family: inherit;
+  font-size: 0.88rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
   outline: none;
   transition: all 0.2s;
+  background: #f8fafc;
+  box-sizing: border-box;
+  min-height: 42px;
+}
   background: #f8fafc;
 }
 
