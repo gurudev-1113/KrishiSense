@@ -457,7 +457,7 @@ def call_external_llm(user_message, current_page, lang="en"):
         return None
     try:
         import requests
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={gemini_key}"
         headers = {"Content-Type": "application/json"}
         prompt = (
             f"You are Krishi Mitra, an expert precision agricultural assistant for KrishiSense smart farming system in Karnataka, India. "
@@ -475,6 +475,10 @@ def call_external_llm(user_message, current_page, lang="en"):
             data = res.json()
             candidates = data.get("candidates", [])
             if candidates:
+                # extract
+                for part in candidates[0].get('content', {}).get('parts', []):
+                    if 'text' in part and not part.get('thought', False):
+                        return part['text'].strip()
                 reply = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
                 if reply:
                     return reply.strip()
