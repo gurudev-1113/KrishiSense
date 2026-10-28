@@ -1,4 +1,4 @@
-const CACHE_NAME = 'krishisense-pwa-v2';
+const CACHE_NAME = 'krishisense-pwa-v3';
 const STATIC_ASSETS = [
   '/',
   '/dashboard',
@@ -13,11 +13,12 @@ const STATIC_ASSETS = [
   '/static/img/apple-touch-icon.png',
   '/static/img/krishi-bot-transparent.png',
   '/static/img/logo.png',
+  '/static/img/default-avatar.png',
   '/static/favicon.ico',
   '/manifest.json'
 ];
 
-// Install Event
+// Install Event - Pre-cache critical core assets
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -29,7 +30,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate Event - clean up stale caches
+// Activate Event - Clean up old/stale caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -44,33 +45,48 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Fast, responsive caching
+// Fetch Event - Fast, resilient caching
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Skip POST/PUT/DELETE requests
+  // Skip non-GET requests
   if (req.method !== 'GET') {
     return;
   }
 
-  // 1. CRITICAL: NEVER intercept video files (let browser stream natively via HTTP 206)
-  if (url.pathname.endsWith('.mp4') || url.pathname.endsWith('.webm') || url.pathname.includes('/videos/')) {
+  // 1. CRITICAL: Never intercept video streaming or Range requests (let browser stream natively)
+  if (
+    url.pathname.endsWith('.mp4') ||
+    url.pathname.endsWith('.webm') ||
+    url.pathname.includes('/videos/') ||
+    req.headers.get('range')
+  ) {
     return;
   }
 
-  // 2. Static Assets (CSS, JS, PNG, ICO, Fonts) - Cache First for instant speed
+  // 2. Static Assets (CSS, JS, PNG, ICO, WebP, SVG, Fonts) - Cache-first with robust fallback
   if (url.pathname.startsWith('/static/')) {
     event.respondWith(
-      caches.match(req).then((cached) => {
+      caches.match(req, { ignoreSearch: true }).then((cached) => {
         if (cached) return cached;
-        return fetch(req).then((res) => {
-          if (res.status === 200) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
-          }
-          return res;
-        });
+        return fetch(req)
+          .then((res) => {
+            if (res && res.status === 200) {
+              const clone = res.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(req, clone)).catch(() => {});
+            }
+            return res;
+          })
+          .catch(() => {
+            // If network request fails, try matching path without query string or return fallback
+            return caches.match(url.pathname, { ignoreSearch: true }).then((fallback) => {
+              if (fallback) return fallback;
+              return new Response('', { status: 204, statusText: 'No Content' });
+            });
+          });
+      }).catch(() => {
+        return fetch(req).catch(() => new Response('', { status: 204, statusText: 'No Content' }));
       })
     );
     return;
@@ -78,10 +94,19 @@ self.addEventListener('fetch', (event) => {
 
   // 3. HTML Pages & Dynamic Navigation - Network First, fallback to cached offline shell
   event.respondWith(
-    fetch(req).catch(() => {
-      return caches.match(req).then((cached) => {
-        return cached || caches.match('/');
-      });
-    })
+    fetch(req)
+      .then((res) => {
+        if (res && res.status === 200 && req.mode === 'navigate') {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone)).catch(() => {});
+        }
+        return res;
+      })
+      .catch(() => {
+        return caches.match(req, { ignoreSearch: true }).then((cached) => {
+          return cached || caches.match('/');
+        });
+      })
+      .catch(() => new Response('Offline', { status: 503, statusText: 'Service Unavailable' }))
   );
 });
