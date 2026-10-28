@@ -185,23 +185,23 @@ body { top: 0 !important; }
 .btn-outline { border:2px solid var(--primary); color:var(--primary); background:#fff; }
 .hero-video-box {
   max-width: 960px;
-  margin: 44px auto 0;
-  border-radius: 24px;
+  width: 100%;
+  margin: 40px auto 0;
+  border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(10, 61, 36, 0.22), 0 6px 18px rgba(0, 0, 0, 0.08);
-  border: 3px solid rgba(245, 158, 11, 0.35);
+  border: 3px solid rgba(245, 158, 11, 0.45);
   background: #000;
   position: relative;
-  aspect-ratio: 16 / 9;
 }
 .hero-video-box video {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
-  border: 0;
+  height: auto;
+  min-height: 280px;
+  max-height: 540px;
   display: block;
+  object-fit: cover;
+  border: 0;
 }
 
 /* Stats strip */
@@ -281,8 +281,8 @@ footer { text-align:center; padding:34px; color:var(--text-muted); font-size:0.8
       <a href="{{ url_for('login') }}" class="btn btn-outline"><i class="fas fa-right-to-bracket"></i> Login</a>
     {% endif %}
   </div>
-  <div class="hero-video-box">
-    <video id="heroVideo" controls muted loop playsinline preload="none" title="KrishiSense Smart Farming">
+  <div class="hero-video-box" id="heroVideoBox">
+    <video id="heroVideo" controls autoplay muted loop playsinline preload="auto" title="KrishiSense Smart Farming" poster="/static/img/default-avatar.png">
       <source src="{{ url_for('static', filename='videos/krishisense.mp4') }}" type="video/mp4">
       Your browser does not support HTML video.
     </video>
@@ -367,12 +367,12 @@ Content-Type: application/json<br><br>
 (function() {
   var v = document.getElementById('heroVideo');
   if (!v) return;
-  if (window.innerWidth > 768) {
-    v.preload = 'metadata';
-    v.autoplay = true;
-    v.play().catch(function(){});
-  } else {
-    v.preload = 'none';
+  v.muted = true;
+  var playPromise = v.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(function(error) {
+      console.log('Autoplay waiting for user interaction:', error);
+    });
   }
 })();
 </script>

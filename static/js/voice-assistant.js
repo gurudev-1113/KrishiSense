@@ -913,12 +913,18 @@
 
     function openModal() {
       previewImg.src = getUserAvatar();
+      const unameEl = document.querySelector('.user-profile-badge span') || document.querySelector('.user-profile-badge strong');
+      const unameDisplay = document.getElementById("pmUsernameDisplay");
+      if (unameEl && unameDisplay) unameDisplay.textContent = unameEl.textContent.trim();
       chosenPreset = null;
       chosenFile = null;
       presets.forEach(p => p.classList.remove("selected"));
       if (statusMsg) statusMsg.style.display = "none";
       modal.classList.add("open");
     }
+
+    window.openKrishiProfileModal = openModal;
+    window.__krishiOpenProfileModal = openModal;
 
     function closeModal() {
       modal.classList.remove("open");
@@ -930,11 +936,12 @@
       if (e.target === modal) closeModal();
     });
 
-    document.querySelectorAll(".user-profile-badge, #openProfileModalBtn, .topbar-user-avatar").forEach(el => {
-      el.addEventListener("click", (e) => {
+    document.addEventListener("click", (e) => {
+      const trigger = e.target.closest(".user-profile-badge, #openProfileModalBtn, .topbar-user-avatar, .badge-change-photo-btn, [data-open-profile-modal]");
+      if (trigger) {
         e.preventDefault();
         openModal();
-      });
+      }
     });
 
     presets.forEach(p => {

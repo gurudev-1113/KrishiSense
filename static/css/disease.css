@@ -784,3 +784,60 @@ footer {
     font-size: 1.6rem;
   }
 }
+
+
+/* User Profile Badge & Topbar Avatar Fixes */
+.user-profile-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  padding: 3px 12px 3px 4px !important;
+  border-radius: 28px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease !important;
+  user-select: none !important;
+  vertical-align: middle !important;
+  text-decoration: none !important;
+}
+.user-profile-badge:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-color: #f59e0b !important;
+  transform: translateY(-1px) !important;
+}
+.topbar-user-avatar,
+.user-profile-badge .topbar-user-avatar {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 2px solid #f59e0b !important;
+  background: #ffffff !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+}
+.badge-change-photo-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  background: rgba(245, 158, 11, 0.25) !important;
+  color: #fef08a !important;
+  border: 1px solid rgba(245, 158, 11, 0.6) !important;
+  padding: 3px 8px !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+.user-profile-badge:hover .badge-change-photo-btn {
+  background: #f59e0b !important;
+  color: #1e293b !important;
+}

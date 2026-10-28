@@ -14,7 +14,7 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}?v=3">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice-assistant.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice-assistant.css', v='20261028_1') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         /* ============================================================
@@ -992,10 +992,10 @@
           <button type="button" class="lang-btn active" data-lang="en">EN</button>
           <button type="button" class="lang-btn" data-lang="kn">ಕನ</button>
         </div>
-            <div class="user-profile-badge" id="openProfileModalBtn" title="Click to view & change profile photo">
-                <img src="{{ profile_image }}" alt="Admin" class="topbar-user-avatar" onerror="this.onerror=null; this.src='/static/img/avatars/tech.png';">
-                <strong>Admin</strong>
-                <i class="fa-solid fa-camera" style="font-size:0.68rem; color:#f59e0b;" title="Change Photo"></i>
+                        <div class="user-profile-badge" id="openProfileModalBtn" onclick="openKrishiProfileModal()" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; padding:3px 10px 3px 4px; border-radius:24px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; user-select:none; transition:all 0.2s ease; text-decoration:none;" title="Click to view & change profile photo">
+                <img src="{{ profile_image }}" alt="Admin" class="topbar-user-avatar" width="34" height="34" style="width:34px; height:34px; min-width:34px; min-height:34px; max-width:34px; max-height:34px; border-radius:50%; object-fit:cover; display:inline-block; border:2px solid #f59e0b; background:#ffffff; vertical-align:middle; box-shadow:0 2px 6px rgba(0,0,0,0.25);" onerror="this.onerror=null; this.src='/static/img/avatars/tech.png';">
+                <span style="font-weight:700; font-size:0.86rem; color:#ffffff;">Admin</span>
+                <span class="badge-change-photo-btn" style="display:inline-flex; align-items:center; gap:4px; font-size:0.72rem; font-weight:700; background:rgba(245,158,11,0.25); color:#fef08a; border:1px solid rgba(245,158,11,0.6); padding:2px 8px; border-radius:12px; margin-left:2px;" title="Upload or Change Photo"><i class="fa-solid fa-camera"></i> Change</span>
             </div>
             <a href="{{ url_for('model_insights') }}" class="btn-back"><i class="fas fa-chart-line"></i> Insights</a>
             <a href="{{ url_for('dashboard') }}" class="btn-back">
@@ -1858,6 +1858,8 @@
 
 <script src="{{ url_for('static', filename='js/lang-toggle.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
-<script src="{{ url_for('static', filename='js/voice-assistant.js') }}"></script>
+<script src="{{ url_for('static', filename='js/voice-assistant.js', v='20261028_1') }}"></script>
+
+{% include 'profile_modal.html' %}
 </body>
 </html>

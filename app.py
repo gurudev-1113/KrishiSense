@@ -7,6 +7,7 @@ and returns a Sell / Store / Wait recommendation with a plain-language reason.
 """
 import sys
 import os
+import re
 if hasattr(sys.stdout, 'reconfigure'):
     try:
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -1263,53 +1264,12 @@ def static_favicon():
 
 @app.route('/static/videos/<path:filename>')
 def serve_video_stream(filename):
-    """Serve videos with HTTP 206 Partial Content byte-range support for smooth playback without timeouts"""
+    """Serve videos with full HTTP 206 Partial Content and byte-range support using Werkzeug/Flask"""
     video_dir = os.path.join(app.root_path, 'static', 'videos')
-    video_path = os.path.join(video_dir, filename)
-    if not os.path.exists(video_path):
-        return "Video not found", 404
-
-    file_size = os.path.getsize(video_path)
-    range_header = request.headers.get('Range', None)
-
-    if not range_header:
-        resp = send_from_directory(video_dir, filename, mimetype='video/mp4')
-        resp.headers['Accept-Ranges'] = 'bytes'
-        return resp
-
-    byte1, byte2 = 0, None
-    m = re.search(r'bytes=(\d+)-(\d*)', range_header)
-    if m:
-        g = m.groups()
-        if g[0]:
-            byte1 = int(g[0])
-        if g[1]:
-            byte2 = int(g[1])
-
-    if byte2 is None or byte2 >= file_size:
-        byte2 = min(byte1 + 2 * 1024 * 1024 - 1, file_size - 1)  # 2MB chunk max
-
-    length = byte2 - byte1 + 1
-
-    def generate_chunks():
-        with open(video_path, 'rb') as vf:
-            vf.seek(byte1)
-            rem = length
-            while rem > 0:
-                chunk = min(rem, 64 * 1024)
-                data = vf.read(chunk)
-                if not data:
-                    break
-                rem -= len(data)
-                yield data
-
-    from flask import Response
-    rv = Response(generate_chunks(), 206, mimetype='video/mp4', direct_passthrough=True)
-    rv.headers['Content-Range'] = f'bytes {byte1}-{byte2}/{file_size}'
-    rv.headers['Accept-Ranges'] = 'bytes'
-    rv.headers['Content-Length'] = str(length)
-    rv.headers['Cache-Control'] = 'public, max-age=86400'
-    return rv
+    resp = send_from_directory(video_dir, filename, mimetype='video/mp4', conditional=True)
+    resp.headers['Accept-Ranges'] = 'bytes'
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
 
 @app.route('/logo.png')
 def root_logo():
