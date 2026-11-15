@@ -152,9 +152,14 @@ Respond strictly in valid JSON matching this schema:
             "contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": "image/jpeg", "data": b64}}]}],
             "generationConfig": {"response_mime_type": "application/json", "temperature": 0.1}
         }
-        r = requests.post(url, json=payload, timeout=15)
+        r = requests.post(url, json=payload, timeout=20)
         if r.status_code == 200:
-            return json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
+            raw_text = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            if raw_text.startswith("```"):
+                import re
+                raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+                raw_text = re.sub(r"\s*```$", "", raw_text)
+            return json.loads(raw_text)
     except Exception as e:
         print(f"[Gemini Vision] Falling back to local CNN pipeline: {e}")
     return None

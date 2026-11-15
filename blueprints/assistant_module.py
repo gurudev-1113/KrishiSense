@@ -15,6 +15,11 @@ import sqlite3
 import re
 from datetime import datetime
 from flask import Blueprint, request, jsonify, session
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 assistant_bp = Blueprint("assistant_bp", __name__)
 
@@ -504,7 +509,7 @@ def call_external_llm(user_message, current_page, lang="en"):
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {"temperature": 0.4, "maxOutputTokens": 300}
         }
-        res = requests.post(url, headers=headers, json=payload, timeout=8)
+        res = requests.post(url, headers=headers, json=payload, timeout=15)
         if res.status_code == 200:
             data = res.json()
             candidates = data.get("candidates", [])
