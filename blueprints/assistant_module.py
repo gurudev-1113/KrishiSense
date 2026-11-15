@@ -490,7 +490,7 @@ def call_external_llm(user_message, current_page, lang="en"):
         return None
     try:
         import requests
-        model_name = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+        model_name = os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite")
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
         headers = {"Content-Type": "application/json"}
         prompt = (

@@ -17,6 +17,11 @@ from PIL import Image
 from scipy import ndimage
 import onnxruntime as ort
 from werkzeug.utils import secure_filename
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 disease_bp = Blueprint("disease_bp", __name__)
 
@@ -110,54 +115,44 @@ def diagnose_with_gemini(img_path):
 
     try:
         im = Image.open(img_path).convert("RGB")
-        im.thumbnail((512, 512), Image.Resampling.LANCZOS)
+        im.thumbnail((384, 384), Image.Resampling.LANCZOS)
         buf = io.BytesIO()
-        im.save(buf, format="JPEG", quality=85)
+        im.save(buf, format="JPEG", quality=80)
         b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
 
-        model_name = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+        model_name = os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite")
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
         prompt = """You are an expert plant pathologist and agronomist in KrishiSense.
-Analyze this leaf image carefully.
+Analyze this leaf/plant image carefully.
 
 Tasks:
-1. Check if this is an image of a real plant leaf or foliage.
-2. Determine the exact crop/plant species (e.g. Apple, Potato, Tomato, Banana, Corn/Maize, Arecanut, Mango, Coconut, Papaya, weed, etc.).
-3. The KrishiSense Leaf Scan model ONLY supports 3 crops:
-   - Apple (Apple_Black_Rot / Frogeye leaf spot, Apple_Healthy)
-   - Potato (Potato_Early_Blight, Potato_Healthy)
-   - Tomato (Tomato_Bacterial_Spot, Tomato_Healthy, Tomato_Yellow_Leaf_Curl_Virus)
-4. If this image is NOT one of the 3 supported crops (for example: Banana, Corn, Maize, Arecanut, Coconut, weeds, non-leaf, animals, objects):
-   Set "is_supported_crop": false, and write a clear error_message explaining that this crop is not suitable for diagnosis and specify which crop or object was detected.
-5. If it IS one of Apple, Potato, or Tomato:
-   Identify the diagnosis:
-   - "Apple_Black_Rot"
-   - "Apple_Healthy"
-   - "Potato_Early_Blight"
-   - "Potato_Healthy"
-   - "Tomato_Bacterial_Spot"
-   - "Tomato_Healthy"
-   - "Tomato_Yellow_Leaf_Curl_Virus"
-   Provide detailed symptoms, practical prevention, and specific treatment guidelines.
+1. Verify if this image depicts a plant leaf, crop foliage, stem, fruit, or agricultural specimen.
+   If it is completely unrelated (e.g. human face, car, electronics, shoes, animal, building), set "is_leaf": false.
+2. Identify the plant or crop species (e.g. Arecanut, Palm, Coconut, Banana, Tomato, Potato, Apple, Pepper, Rice/Paddy, Chilli, Cotton, Corn, Mango, etc.).
+3. Diagnose the health condition:
+   - If healthy, set "is_healthy": true, "predicted_class": "<PlantName> Healthy", with a clear statement that no infection is detected.
+   - If diseased or pest-damaged, set "is_healthy": false, "predicted_class": "<PlantName> <DiseaseName>" (e.g., "Arecanut Koleroga", "Arecanut Yellow Leaf Disease", "Banana Sigatoka Leaf Spot", "Tomato Bacterial Spot", "Potato Early Blight", "Apple Black Rot", "Coconut Bud Rot", etc.).
+4. Provide actionable agronomic guidance tailored to Indian farming conditions:
+   - "symptoms": observed visual indicators and progression signs.
+   - "prevention": cultural sanitation, spacing, aeration, and proactive field management.
+   - "treatment": practical organic remedies (neem oil, Trichoderma, Bordeaux mixture) and targeted chemical fungicides/bactericides with recommended dosage.
 
 Respond strictly in valid JSON matching this schema:
 {
   "is_leaf": true,
   "plant_name": "string",
-  "is_supported_crop": true,
   "predicted_class": "string",
   "is_healthy": false,
   "confidence": 0.95,
   "symptoms": "string",
   "prevention": "string",
-  "treatment": "string",
-  "error_message": "string"
+  "treatment": "string"
 }"""
         payload = {
             "contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": "image/jpeg", "data": b64}}]}],
             "generationConfig": {"response_mime_type": "application/json", "temperature": 0.1}
         }
-        r = requests.post(url, json=payload, timeout=8)
+        r = requests.post(url, json=payload, timeout=15)
         if r.status_code == 200:
             return json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
     except Exception as e:
@@ -313,37 +308,17 @@ def disease_predict():
                 "image_path": image_url,
             })
 
-        if not gemini_result.get("is_supported_crop", True):
-            detected_plant = gemini_result.get("plant_name", "Unsupported Crop")
-            err_msg = gemini_result.get("error_message") or (
-                f"⚠️ Unsupported Crop ({detected_plant}): KrishiSense Leaf Scan AI is trained strictly "
-                f"for Apple, Potato, and Tomato leaf diseases. Leaves of {detected_plant} are not suitable."
-            )
-            return jsonify({
-                "success": False,
-                "error": err_msg,
-                "image_path": image_url,
-                "detected_crop": detected_plant,
-            })
-
-        # Supported crop confirmed by Gemini
-        pred_class = gemini_result.get("predicted_class", "Apple_Healthy")
-        if pred_class not in REMEDIES:
-            # Map standard class names if slight variation occurred
-            for k in REMEDIES.keys():
-                if k.lower() in pred_class.lower() or pred_class.lower() in k.lower():
-                    pred_class = k
-                    break
-
-        confidence = float(gemini_result.get("confidence", 0.95))
+        # Gemini confirmed real plant leaf
+        detected_plant = gemini_result.get("plant_name", "Plant")
+        pred_class = gemini_result.get("predicted_class") or f"{detected_plant} Healthy"
+        confidence = float(gemini_result.get("confidence", 0.96))
         is_healthy = bool(gemini_result.get("is_healthy", False))
         display_name = pred_class.replace("_", " ")
 
-        # Use model-provided symptoms or fallback to agronomic knowledge base
         base_remedy = REMEDIES.get(pred_class, {
-            "symptoms": "Foliage inspection completed.",
-            "prevention": "Maintain standard agronomic practices.",
-            "treatment": "Follow recommended crop protection guidelines.",
+            "symptoms": "Foliage and canopy inspection completed.",
+            "prevention": "Maintain proper plant spacing, drainage, and soil nutrition.",
+            "treatment": "Follow recommended integrated pest and disease management guidelines.",
         })
         remedy = {
             "symptoms": gemini_result.get("symptoms") or base_remedy["symptoms"],
