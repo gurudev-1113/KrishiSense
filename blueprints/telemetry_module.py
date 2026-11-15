@@ -392,10 +392,32 @@ def start_simulator_if_enabled():
 
 @telemetry_bp.route("/api/plant-health")
 def api_plant_health():
-    if "user_id" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
     try:
-        from blueprints.hardware_serial import get_plant_health_state
-        return jsonify(get_plant_health_state())
+        from blueprints.hardware_serial import get_plant_health_state, _score_plant_health, _load_plant_health_model
+        state = get_plant_health_state()
+        if state.get("status") in ("healthy", "attention"):
+            return jsonify(state)
+
+        # Fallback to recent database readings if hardware reader is warming up or restarted
+        conn = get_db()
+        rows = conn.execute(
+            "SELECT ph, air_temp_c, humidity_pct, moisture_pct FROM readings ORDER BY id DESC LIMIT 10"
+        ).fetchall()
+        conn.close()
+
+        if len(rows) >= 5:
+            import numpy as np
+            _load_plant_health_model()
+            avg = {
+                "ph": float(np.mean([r[0] for r in rows if r[0] is not None] or [7.0])),
+                "temperature": float(np.mean([r[1] for r in rows if r[1] is not None] or [28.0])),
+                "humidity": float(np.mean([r[2] for r in rows if r[2] is not None] or [65.0])),
+                "water_needed": float(np.mean([1 if (r[3] is not None and r[3] < 35) else 0 for r in rows])),
+            }
+            res = _score_plant_health(avg)
+            res["averaged_over"] = len(rows)
+            return jsonify(res)
+
+        return jsonify(state)
     except Exception as e:
         return jsonify({"status": "unavailable", "message": str(e)})

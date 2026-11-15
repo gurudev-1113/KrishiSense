@@ -11,6 +11,7 @@ import re
 
 # Ensure Keras and TensorFlow use local project cache and avoid permission issues
 os.environ.setdefault("KERAS_HOME", os.path.join(os.path.dirname(os.path.abspath(__file__)), ".keras"))
+os.environ.setdefault("KRISHISENSE_SERIAL_CONFIRM", "0")
 os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
 
 if hasattr(sys.stdout, 'reconfigure'):

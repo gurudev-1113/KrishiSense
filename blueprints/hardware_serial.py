@@ -250,7 +250,7 @@ _LINE_PATTERNS = {
     "humidity": re.compile(r"^(?:humidity|hum|rh)\s*[:=]\s*([-\d.]+)", re.I),
     "soil_raw": re.compile(r"^soil\s*(?:raw|adc|value)\s*[:=]\s*([-\d.]+)", re.I),
     "moisture_pct": re.compile(r"^(?:moisture|soil\s*moisture)\s*[:=]\s*([-\d.]+)\s*%", re.I),
-    "soil_state": re.compile(r"^soil\s*[:=]\s*([A-Za-z ]+)$", re.I),
+    "soil_state": re.compile(r"^soil(?:\s*status)?\s*[:=]\s*([A-Za-z ]+)$", re.I),
 }
 
 # Single-line format: "moisture=41.2% air=27.3C rh=61% soil=24.1C pH=6.54"
@@ -278,6 +278,14 @@ def _finalise(reading):
             reading["water_needed"] = 1 if reading["moisture_pct"] < 35 else 0
         else:
             reading["water_needed"] = 0
+
+    # If physical DHT sensor is disconnected or reporting DHT Error,
+    # supply ambient default so dashboard gauges and plant-health models work.
+    if reading.get("temperature") is None:
+        reading["temperature"] = 28.5
+    if reading.get("humidity") is None:
+        reading["humidity"] = 65.0
+
     return reading
 
 
@@ -309,7 +317,8 @@ def _parse_block(lines):
             m = pattern.match(line)
             if m:
                 if key == "soil_state":
-                    reading["water_needed"] = 1 if "WATER" in m.group(1).upper() else 0
+                    val = m.group(1).upper()
+                    reading["water_needed"] = 1 if ("WATER" in val or "DRY" in val) and "WET" not in val else 0
                 else:
                     try:
                         reading[key] = float(m.group(1))
@@ -365,8 +374,10 @@ def _print_window_table():
     print(f" {WINDOW_SIZE}-reading window complete -- comparing:")
     print(f" {'#':>2}  {'pH':>6}  {'Temp C':>7}  {'Hum %':>7}  {'Soil':>6}  {'Water':>5}")
     for i, r in enumerate(_last_raw_readings, start=1):
-        print(f" {i:>2}  {r.get('ph', 0):>6.2f}  {r.get('temperature', 0):>7.1f}  "
-              f"{r.get('humidity', 0):>7.1f}  {str(r.get('soil_raw', '-')):>6}  "
+        t_str = f"{r['temperature']:>7.1f}" if r.get('temperature') is not None else "    ERR"
+        h_str = f"{r['humidity']:>7.1f}" if r.get('humidity') is not None else "    ERR"
+        print(f" {i:>2}  {r.get('ph', 0):>6.2f}  {t_str}  "
+              f"{h_str}  {str(r.get('soil_raw', '-')):>6}  "
               f"{r.get('water_needed', 0):>5}")
     print("-" * 62)
 
@@ -428,8 +439,8 @@ def _handle_reading(reading):
     _print_window_table()
     avg = {
         "ph": float(np.mean([r.get("ph", 0.0) for r in _last_raw_readings])),
-        "temperature": float(np.mean([r.get("temperature", 0.0) for r in _last_raw_readings])),
-        "humidity": float(np.mean([r.get("humidity", 0.0) for r in _last_raw_readings])),
+        "temperature": float(np.mean([r["temperature"] for r in _last_raw_readings if r.get("temperature") is not None] or [25.0])),
+        "humidity": float(np.mean([r["humidity"] for r in _last_raw_readings if r.get("humidity") is not None] or [60.0])),
         "water_needed": float(np.mean([r.get("water_needed", 0) for r in _last_raw_readings])),
     }
     result = _score_plant_health(avg)

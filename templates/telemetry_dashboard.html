@@ -329,6 +329,7 @@ async function refreshAlerts() {
 async function refreshPlantHealth() {
     try {
         const res = await fetch("{{ url_for('telemetry_bp.api_plant_health') }}");
+        const data = await res.json();
         const icons = {
             healthy: '<i class="fa-solid fa-circle-check" style="color:#10b981;"></i>',
             attention: '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i>',
