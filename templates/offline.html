@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishiSense - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0a3d24 0%, #1a5a3a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 24px;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            color: #0a3d24;
+            margin-bottom: 12px;
+            font-size: 24px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .status {
+            background: #f0f0f0;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background-color: #ff6b6b;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-direction: column;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0a3d24 0%, #1a5a3a 100%);
+            color: white;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:active {
+            background: #e0e0e0;
+        }
+
+        .cached-data {
+            background: #e8f5e9;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 24px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .cached-data h3 {
+            color: #2e7d32;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .cached-data ul {
+            list-style: none;
+            text-align: left;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .cached-data li {
+            padding: 4px 0;
+        }
+
+        .cached-data li:before {
+            content: "✓ ";
+            color: #4caf50;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>You're Offline</h1>
+        <p>No internet connection detected. Some features may be limited.</p>
+
+        <div class="status">
+            <span class="status-dot offline"></span>
+            Waiting for connection...
+        </div>
+
+        <div class="actions">
+            <button class="btn-primary" onclick="location.reload()">Retry Connection</button>
+            <button class="btn-secondary" onclick="goHome()">Go to Home</button>
+        </div>
+
+        <div class="cached-data">
+            <h3>Cached Data Available:</h3>
+            <ul id="cachedList">
+                <li>Dashboard summaries</li>
+                <li>Previous predictions</li>
+                <li>User profile</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Check connection status
+        function checkConnection() {
+            if (navigator.onLine) {
+                console.log('Connection restored! Reloading...');
+                setTimeout(() => location.reload(), 1000);
+            }
+        }
+
+        window.addEventListener('online', checkConnection);
+        window.addEventListener('offline', () => console.log('Connection lost'));
+
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // Try to access cached data
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                console.log('Available caches:', names);
+            });
+        }
+
+        // Update cached data list dynamically
+        setTimeout(() => {
+            const cachedList = document.getElementById('cachedList');
+            const items = cachedList.querySelectorAll('li');
+            if (items.length > 0) {
+                cachedList.innerHTML = '<li>✓ Last dashboard view</li><li>✓ Recent predictions</li><li>✓ User preferences</li>';
+            }
+        }, 500);
+    </script>
+</body>
+</html>

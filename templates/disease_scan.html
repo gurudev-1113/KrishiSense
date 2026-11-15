@@ -53,8 +53,11 @@
         <a href="{{ url_for('crop_bp.crop_form') }}" data-i18n="nav.cropadvisor">Crop Advisor</a>
         <a href="{{ url_for('disease_bp.disease_index') }}" class="active-link" data-i18n="nav.leafscan">Leaf Scan</a>
         <a href="{{ url_for('telemetry_bp.telemetry_dashboard') }}" data-i18n="nav.sensornode">Sensor Node</a>
+        {% if session.get('is_admin') %}
         <a href="{{ url_for('model_insights') }}" data-i18n="nav.insights">Insights</a>
-                <div class="user-profile-badge" id="openProfileModalBtn" onclick="openKrishiProfileModal()" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; padding:3px 10px 3px 4px; border-radius:24px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; user-select:none; transition:all 0.2s ease; text-decoration:none;" title="Click to view & change profile photo">
+        <a href="{{ url_for('admin_dashboard.admin_dashboard') }}" data-i18n="nav.admin">Admin</a>
+        {% endif %}
+        <div class="user-profile-badge" id="openProfileModalBtn" onclick="openKrishiProfileModal()" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; padding:3px 10px 3px 4px; border-radius:24px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; user-select:none; transition:all 0.2s ease; text-decoration:none;" title="Click to view & change profile photo">
             <img src="{{ profile_image }}" alt="{{ username }}" class="topbar-user-avatar" width="34" height="34" style="width:34px; height:34px; min-width:34px; min-height:34px; max-width:34px; max-height:34px; border-radius:50%; object-fit:cover; display:inline-block; border:2px solid #f59e0b; background:#ffffff; vertical-align:middle; box-shadow:0 2px 6px rgba(0,0,0,0.25);" onerror="this.onerror=null; this.src='/static/img/default-avatar.png';">
             <span style="font-weight:700; font-size:0.86rem; color:#ffffff;">{{ username }}</span>
             <span class="badge-change-photo-btn" style="display:inline-flex; align-items:center; gap:4px; font-size:0.72rem; font-weight:700; background:rgba(245,158,11,0.25); color:#fef08a; border:1px solid rgba(245,158,11,0.6); padding:2px 8px; border-radius:12px; margin-left:2px;" title="Upload or Change Photo"><i class="fa-solid fa-camera"></i> Change</span>
@@ -67,14 +70,17 @@
     <div class="hero">
         <div class="hero-badge"><i class="fa-solid fa-microscope" style="color:var(--gold);margin-right:6px;"></i><span data-i18n="disease.badge">Apple &nbsp;&middot;&nbsp; Potato &nbsp;&middot;&nbsp; Tomato</span></div>
         <h1 data-i18n="disease.title">Diagnose your plant in seconds</h1>
-        <p data-i18n="disease.desc">Upload a clear photo of a leaf and get an instant AI-based diagnosis, complete with prevention and treatment guidance -- right beside your photo, on this same page.</p>
+        <p data-i18n="disease.desc">Upload a clear photo of an Apple, Potato, or Tomato leaf to get an instant AI-based diagnosis, complete with prevention and treatment guidance.</p>
     </div>
 
     <div class="workspace">
 
         <div class="panel upload-panel">
             <h3 class="panel-title" data-i18n="disease.step1">1. Choose your image</h3>
+            
             <form id="uploadForm">
+                <input type="hidden" name="crop_type" id="cropTypeInput" value="auto">
+
                 <div class="upload-zone" id="dropZone">
                     <img id="previewImg" class="preview-img" alt="Selected leaf preview">
 
@@ -163,7 +169,7 @@
     <div class="features">
         <div class="feature"><i class="fa-solid fa-bolt-lightning feature-icon" style="color: #c8933b;"></i><span data-i18n="disease.feat1">Instant results</span></div>
         <div class="feature"><i class="fa-solid fa-circle-check feature-icon" style="color: #1f6e4c;"></i><span data-i18n="disease.feat2">7 disease classes</span></div>
-        <div class="feature"><i class="fa-solid fa-brain feature-icon" style="color: #1f6e4c;"></i><span data-i18n="disease.feat3">CNN-based model</span></div>
+        <div class="feature"><i class="fa-solid fa-brain feature-icon" style="color: #1f6e4c;"></i><span data-i18n="disease.feat3">Apple, Potato &amp; Tomato CNN</span></div>
     </div>
 </main>
 
@@ -290,6 +296,7 @@
 
         const formData = new FormData();
         formData.append('image', fileInput.files[0]);
+        formData.append('crop_type', 'auto');
 
         try {
             const response = await fetch('{{ url_for("disease_bp.disease_predict") }}', {
@@ -301,7 +308,7 @@
             if (data.success) {
                 showResult(data);
             } else {
-                showError(data.error || 'Something went wrong. Please try another image.');
+                showError(data.error || 'This image is not suitable for diagnosis. Please try another image.');
             }
         } catch (err) {
             showError('Could not reach the server. Please check your connection and try again.');

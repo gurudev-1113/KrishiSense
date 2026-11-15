@@ -18,7 +18,7 @@ import time
 import random
 from datetime import datetime, timedelta
 
-from flask import Blueprint, request, jsonify, session, render_template
+from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 
 telemetry_bp = Blueprint("telemetry_bp", __name__)
 
@@ -35,7 +35,7 @@ SIMULATE_INTERVAL_SEC = 10
 # Schema (synopsis §9 data model)
 # ------------------------------------------------------------
 def get_db():
-    conn = sqlite3.connect(TELEMETRY_DB)
+    conn = sqlite3.connect(TELEMETRY_DB, timeout=30.0)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -300,7 +300,6 @@ def api_alerts():
 @telemetry_bp.route("/telemetry")
 def telemetry_dashboard():
     if "user_id" not in session:
-        from flask import redirect, url_for
         return redirect(url_for("login"))
     username = session.get("username", "User")
     return render_template(

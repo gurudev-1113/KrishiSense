@@ -410,14 +410,8 @@
             <a href="{{ url_for('dashboard') }}" class="btn-back" id="backToDashboard" data-i18n="nav.pricedss">
                 <i class="fas fa-chart-pie"></i> Price DSS
             </a>
-            <a href="{{ url_for('crop_bp.crop_form') }}" class="btn-back" data-i18n="nav.cropadvisor">
-                <i class="fas fa-seedling"></i> Crop Advisor
-            </a>
-            <a href="{{ url_for('disease_bp.disease_index') }}" class="btn-back" data-i18n="nav.leafscan">
-                <i class="fas fa-leaf"></i> Leaf Scan
-            </a>
-            <a href="{{ url_for('telemetry_bp.telemetry_dashboard') }}" class="btn-back" data-i18n="nav.sensornode">
-                <i class="fas fa-satellite-dish"></i> Sensor Node
+            <a href="{{ url_for('admin_dashboard.admin_dashboard') }}" class="btn-back">
+                <i class="fas fa-cogs"></i> Admin Panel
             </a>
             <a href="{{ url_for('model_insights') }}" class="btn-back" data-i18n="nav.insights">
                 <i class="fas fa-chart-line"></i> Insights

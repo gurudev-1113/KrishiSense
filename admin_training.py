@@ -27,6 +27,8 @@ HOW TO WIRE THIS IN -- see ADMIN_INTEGRATION.md
 """
 
 import os
+os.environ.setdefault("KERAS_HOME", os.path.join(os.path.dirname(os.path.abspath(__file__)), ".keras"))
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
 import json
 import pickle
 import sqlite3
@@ -93,7 +95,15 @@ def append_to_prices_db(new_df: pd.DataFrame) -> int:
         keep_cols = [c for c in existing_cols if c in df.columns]
         df = df[keep_cols]
 
-        df.to_sql("prices", conn, if_exists="append", index=False)
+        # Remove any internal duplicates within uploaded CSV first
+        df = df.drop_duplicates(subset=["Commodity", "Market", "Date"])
+
+        # Insert or replace to avoid duplicate accumulation
+        placeholders = ", ".join(["?"] * len(keep_cols))
+        col_names = ", ".join(keep_cols)
+        sql = f"INSERT OR REPLACE INTO prices ({col_names}) VALUES ({placeholders})"
+        cur = conn.cursor()
+        cur.executemany(sql, df.values.tolist())
         conn.commit()
         return len(df)
     finally:

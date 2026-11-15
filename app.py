@@ -8,6 +8,11 @@ and returns a Sell / Store / Wait recommendation with a plain-language reason.
 import sys
 import os
 import re
+
+# Ensure Keras and TensorFlow use local project cache and avoid permission issues
+os.environ.setdefault("KERAS_HOME", os.path.join(os.path.dirname(os.path.abspath(__file__)), ".keras"))
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
+
 if hasattr(sys.stdout, 'reconfigure'):
     try:
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -47,6 +52,11 @@ MAX_LAG = max(LAG_DAYS)
 # Use 365 days for full year of historical data
 HISTORY_DAYS = 365
 
+def get_db():
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
+    conn.row_factory = sqlite3.Row
+    return conn
+
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(16))
@@ -65,6 +75,7 @@ from blueprints.crop_module import crop_bp
 from blueprints.disease_module import disease_bp
 from blueprints.telemetry_module import telemetry_bp, init_telemetry_db, start_simulator_if_enabled
 from blueprints.assistant_module import assistant_bp, init_activity_table
+from admin_dashboard import admin_dashboard_bp
 
 
 class _BoosterPredictAdapter:
@@ -86,6 +97,7 @@ app.register_blueprint(crop_bp)
 app.register_blueprint(disease_bp)
 app.register_blueprint(telemetry_bp)
 app.register_blueprint(assistant_bp)
+app.register_blueprint(admin_dashboard_bp)
 
 init_telemetry_db()
 init_activity_table()
@@ -489,21 +501,17 @@ def load_arima_models():
 # FALLBACK ARIMA/LSTM PREDICTIONS (When models aren't trained yet)
 # ============================================================
 def get_fallback_prediction(prices):
-    """Generate a fallback prediction using weighted average of recent prices"""
+    """Generate a clean deterministic fallback prediction using weighted moving average of recent prices"""
     if not prices or len(prices) < 3:
         return None
     
-    # Use weighted average of recent prices
     n = min(5, len(prices))
     recent = prices[-n:]
     weights = np.linspace(0.5, 1.0, n)  # More weight to recent prices
     weights = weights / weights.sum()
     
-    weighted_avg = np.sum([recent[i] * weights[i] for i in range(n)])
-    
-    # Add small random variation
-    variation = np.random.normal(0, weighted_avg * 0.01)
-    return max(weighted_avg + variation, 1)
+    weighted_avg = float(np.sum([recent[i] * weights[i] for i in range(n)]))
+    return max(weighted_avg, 1.0)
 
 def load_artifacts():
     """Load all trained models and artifacts"""
@@ -596,18 +604,27 @@ def reload_models():
             print(f"⚠️ Could not reload MODEL_METRICS: {e}")
 
 # ============================================================
-# MODEL METRICS (For Comparison Table - PDF Requirement)
+# MODEL METRICS (Loaded directly from trained model artifacts)
 # ============================================================
-# These values should be calculated during training
-# For now, we use realistic example values
-# In production, these would come from your training pipeline
-MODEL_METRICS = {
-    "linear_regression": {"rmse": 1234.56, "mae": 987.65},
-    "random_forest": {"rmse": 876.54, "mae": 654.32},
-    "xgboost": {"rmse": 723.45, "mae": 543.21},
-    "lstm": {"rmse": 654.32, "mae": 498.76},
-    "arima": {"rmse": 589.12, "mae": 445.67}
-}
+def _load_initial_metrics():
+    metrics_path = os.path.join(MODEL_DIR, "model_metrics.json")
+    if os.path.exists(metrics_path):
+        try:
+            with open(metrics_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict) and "linear_regression" in data:
+                    return data
+        except Exception as e:
+            print(f"⚠️ Could not load initial model_metrics.json: {e}")
+    return {
+        "linear_regression": {"rmse": 6417.66, "mae": 3671.89},
+        "random_forest": {"rmse": 6538.37, "mae": 3661.0},
+        "xgboost": {"rmse": 6536.21, "mae": 3631.74},
+        "lstm": {"rmse": 6720.41, "mae": 3782.19},
+        "arima": {"rmse": 5036.49, "mae": 3558.12}
+    }
+
+MODEL_METRICS = _load_initial_metrics()
 
 # ============================================================
 # DYNAMIC MODEL METRICS (so "Best Model" reacts to the selection)
@@ -813,7 +830,7 @@ def build_lstm_sequence(price_history, target_date, commodity_code, commodity_sc
 # Database access
 # ------------------------------------------------------------
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -1442,9 +1459,10 @@ def admin_dedupe_prices():
 # ============================================================
 @app.route("/model-comparison")
 def model_comparison():
-    """Model Comparison page - shows all models performance (hyphenated)"""
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    """Model Comparison page - shows all models performance (Admin only)"""
+    if not session.get('is_admin'):
+        flash('Admin access required to view technical model comparisons.', 'warning')
+        return redirect(url_for('dashboard') if 'user_id' in session else url_for('login'))
     
     commodities = get_commodities()
     username = session.get('username', 'User')
@@ -1453,21 +1471,17 @@ def model_comparison():
 @app.route("/model_comparision")
 def model_comparision():
     """Model Comparison page - shows all models performance (underscored)"""
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    commodities = get_commodities()
-    username = session.get('username', 'User')
-    return render_template("model_comparison.html", commodities=commodities, username=username)
+    return redirect(url_for('model_comparison'))
 
 @app.route("/insights")
+@app.route("/model-insights")
 def model_insights():
     """Model Insights tab -- one place with a trained-metrics graph/heading
     per module: price prediction, crop recommender, regional advisor,
-    sensor node, leaf disease. Reads the metrics JSON files each training
-    script already writes to saved_models/ -- doesn't retrain anything."""
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    sensor node, leaf disease (Admin only)."""
+    if not session.get('is_admin'):
+        flash('Admin access required to view technical ML model insights.', 'warning')
+        return redirect(url_for('dashboard') if 'user_id' in session else url_for('login'))
 
     def _read_json(path):
         try:
@@ -1555,6 +1569,13 @@ def api_predict():
             '09': 'September', '10': 'October', '11': 'November', '12': 'December'
         }
         month_name = month_names.get(month, month)
+
+    # Automatically ensure live mandi prices are up to date
+    try:
+        from live_price_sync import auto_sync_if_needed
+        auto_sync_if_needed(max_age_hours=3)
+    except Exception as e:
+        print(f"[api_predict] Auto-sync check: {e}")
 
     # Get history for prediction
     history_rows = get_price_history(commodity, market, n=HISTORY_DAYS)
@@ -1728,6 +1749,8 @@ def api_predict():
         "variety": variety,
         "last_price": float(display_price) if display_price else 0,
         "last_date": display_date,
+        "target_date": target_date.strftime("%Y-%m-%d"),
+        "target_date_formatted": target_date.strftime("%b %d, %Y"),
         "change_percent": float(pct_change) if pct_change else 0,
         "history": {
             "dates": dates[-60:] if len(dates) > 60 else dates,
@@ -1801,6 +1824,13 @@ def api_predict_months():
             "error": "Models not loaded. Please train models first.",
             "models_loaded": False
         }), 503
+
+    # Automatically ensure live mandi prices are up to date
+    try:
+        from live_price_sync import auto_sync_if_needed
+        auto_sync_if_needed(max_age_hours=3)
+    except Exception as e:
+        pass
 
     # Get price history
     history_rows = get_price_history(commodity, market, n=HISTORY_DAYS)
@@ -2181,6 +2211,18 @@ def api_commodities():
         return jsonify({"error": "Unauthorized"}), 401
     return jsonify(get_commodities())
 
+@app.route("/api/sync-live-prices", methods=["GET", "POST"])
+def api_sync_live_prices():
+    """Trigger live daily mandi price synchronization with Data.gov.in"""
+    if 'user_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    try:
+        from live_price_sync import sync_live_prices
+        result = sync_live_prices()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 # ------------------------------------------------------------
 # Main - Run the app
 # ------------------------------------------------------------
@@ -2236,12 +2278,36 @@ if __name__ == "__main__":
     print("📅 Using 365 days of historical data (full year)")
     print("🔐 User authentication enabled")
     print("🚀 Starting Flask server on http://127.0.0.1:5000 (Local)")
-    print("📱 Mobile / LAN Access on http://192.168.100.233:5000")
+    try:
+        import socket
+        _s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        _s.connect(("8.8.8.8", 80))
+        lan_ip = _s.getsockname()[0]
+        _s.close()
+    except Exception:
+        lan_ip = "127.0.0.1"
+
+    print(f"📱 Mobile / LAN Access on http://{lan_ip}:5000")
     print("📝 Press Ctrl+C to stop the server")
     print("="*60 + "\n")
     
     chrome_thread = threading.Thread(target=open_chrome, daemon=True)
     chrome_thread.start()
+
+    def background_live_price_sync():
+        while True:
+            time.sleep(3)
+            if os.environ.get("DATAGOV_API_KEY"):
+                try:
+                    from live_price_sync import auto_sync_if_needed
+                    res = auto_sync_if_needed(max_age_hours=3)
+                    if isinstance(res, dict) and res.get("records_updated"):
+                        print(f"🌾 [LivePriceSync] Auto-synced: {res.get('message', res)}")
+                except Exception as ex:
+                    print(f"⚠️ [LivePriceSync] {ex}")
+            time.sleep(3600 * 3)  # Periodically refresh every 3 hours
+
+    threading.Thread(target=background_live_price_sync, daemon=True).start()
 
     start_simulator_if_enabled()
 

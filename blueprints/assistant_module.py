@@ -27,7 +27,7 @@ PRICES_DB = "prices.db"
 # ------------------------------------------------------------------
 def init_activity_table():
     try:
-        conn = sqlite3.connect(USER_DB_PATH)
+        conn = sqlite3.connect(USER_DB_PATH, timeout=30.0)
         cursor = conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_activities (
@@ -56,7 +56,7 @@ def get_user_avatar(username):
     if not username or str(username).lower() == "guest":
         return "/static/img/default-avatar.png"
     try:
-        conn = sqlite3.connect(USER_DB_PATH)
+        conn = sqlite3.connect(USER_DB_PATH, timeout=30.0)
         cursor = conn.cursor()
         cursor.execute("SELECT profile_image FROM users WHERE LOWER(username) = LOWER(?)", (str(username),))
         row = cursor.fetchone()
@@ -73,7 +73,7 @@ def log_activity(username, action_type, description, details=None, page=None, pr
     if not profile_image:
         profile_image = get_user_avatar(username)
     try:
-        conn = sqlite3.connect(USER_DB_PATH)
+        conn = sqlite3.connect(USER_DB_PATH, timeout=30.0)
         cursor = conn.cursor()
         cursor.execute(
             """INSERT INTO user_activities (username, action_type, description, details, page, profile_image)
@@ -87,7 +87,7 @@ def log_activity(username, action_type, description, details=None, page=None, pr
 
 def get_activities(username, limit=30):
     try:
-        conn = sqlite3.connect(USER_DB_PATH)
+        conn = sqlite3.connect(USER_DB_PATH, timeout=30.0)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         if not username or str(username).lower() == "guest":
@@ -124,7 +124,7 @@ def get_live_telemetry():
     if not os.path.exists(TELEMETRY_DB):
         return None
     try:
-        conn = sqlite3.connect(TELEMETRY_DB)
+        conn = sqlite3.connect(TELEMETRY_DB, timeout=30.0)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         row = cursor.execute("SELECT * FROM readings ORDER BY id DESC LIMIT 1").fetchone()
@@ -139,7 +139,7 @@ def get_latest_commodity_prices(commodity=None):
     if not os.path.exists(PRICES_DB):
         return []
     try:
-        conn = sqlite3.connect(PRICES_DB)
+        conn = sqlite3.connect(PRICES_DB, timeout=30.0)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         if commodity:
@@ -490,7 +490,8 @@ def call_external_llm(user_message, current_page, lang="en"):
         return None
     try:
         import requests
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={gemini_key}"
+        model_name = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
         headers = {"Content-Type": "application/json"}
         prompt = (
             f"You are Krishi Mitra, an expert precision agricultural assistant for KrishiSense smart farming system in Karnataka, India. "

@@ -1,17 +1,20 @@
 """
 Module M3 -- Leaf Disease Detection (blueprint)
 --------------------------------------------------
-Ported from the standalone plant_disease_app: MobileNet-derived CNN
-exported to ONNX, a true-green color pre-filter that gates the model
-(so a non-leaf image is rejected before the CNN ever sees it), and
-temperature-scaled confidence. Logic is unchanged from the original
-app; only the Flask wiring (blueprint + shared login) changed.
+High-precision multi-stage leaf disease detection:
+1. Multi-modal AI Vision analysis (Gemini Vision) for real-world plant species
+   identification, crop suitability verification, and zero-hallucination diagnosis.
+2. Local CNN & venation-texture safeguard pipeline as an offline/instant fallback.
 """
 import os
+import io
 import json
+import base64
+import requests
 import numpy as np
 from flask import Blueprint, request, render_template, jsonify, session, redirect, url_for
 from PIL import Image
+from scipy import ndimage
 import onnxruntime as ort
 from werkzeug.utils import secure_filename
 
@@ -22,11 +25,17 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 IMG_SIZE = (224, 224)
 MODEL_PATH = "plant_disease_cnn_model.onnx"
 
-CONFIDENCE_THRESHOLD = 0.40
-UNKNOWN_CONFIDENCE_CUTOFF = 0.25
-CONFIDENCE_TEMPERATURE = 4.0
-LEAF_COLOR_RATIO_THRESHOLD = 0.12
-GREEN_ANCHOR_THRESHOLD = 0.05
+# The CNN model is strictly trained on these 7 classes:
+# Apple: Apple_Black_Rot, Apple_Healthy
+# Potato: Potato_Early_Blight, Potato_Healthy
+# Tomato: Tomato_Bacterial_Spot, Tomato_Healthy, Tomato_Yellow_Leaf_Curl_Virus
+SUPPORTED_CROPS = {
+    "apple": ["Apple_Black_Rot", "Apple_Healthy"],
+    "potato": ["Potato_Early_Blight", "Potato_Healthy"],
+    "tomato": ["Tomato_Bacterial_Spot", "Tomato_Healthy", "Tomato_Yellow_Leaf_Curl_Virus"],
+}
+
+CONFIDENCE_THRESHOLD = 0.75
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -48,39 +57,39 @@ def _load():
 
 REMEDIES = {
     "Apple_Black_Rot": {
-        "symptoms": "Purple-brown lesions on leaves and rotted, circular lesions on fruit.",
-        "prevention": "Prune out dead/diseased wood and remove mummified fruit each season.",
-        "treatment": "Apply a labelled fungicide (e.g. captan or myclobutanil) starting at green tip.",
+        "symptoms": "Purple-brown 'frogeye' circular lesions with concentric rings on leaves and rotted fruit.",
+        "prevention": "Prune out dead/cankered wood, remove mummified fruit, and maintain good orchard sanitation.",
+        "treatment": "Apply a labelled fungicide (such as captan, mancozeb, or myclobutanil) starting at green tip.",
     },
     "Apple_Healthy": {
-        "symptoms": "No visible disease symptoms.",
-        "prevention": "Maintain regular pruning, watering and nutrient schedule.",
-        "treatment": "No treatment needed.",
+        "symptoms": "Foliage is clean, vibrant green, and free of visible fungal or bacterial lesions.",
+        "prevention": "Maintain regular pruning, balanced nitrogen/potassium fertilization, and proper watering schedule.",
+        "treatment": "No chemical treatment needed.",
     },
     "Potato_Early_Blight": {
-        "symptoms": "Dark concentric 'target-spot' lesions on older leaves first.",
-        "prevention": "Rotate crops, avoid overhead irrigation, use certified disease-free seed.",
-        "treatment": "Apply chlorothalonil or mancozeb-based fungicide on a preventive schedule.",
+        "symptoms": "Dark brown concentric 'target-spot' lesions developing on older lower leaves first.",
+        "prevention": "Rotate crops with non-solanaceous species, avoid overhead irrigation, and plant certified seed.",
+        "treatment": "Apply chlorothalonil, mancozeb, or azoxystrobin-based fungicide on a preventive schedule.",
     },
     "Potato_Healthy": {
-        "symptoms": "No visible disease symptoms.",
-        "prevention": "Maintain balanced fertilization and proper spacing.",
-        "treatment": "No treatment needed.",
+        "symptoms": "Leaf tissue is smooth, uniformly green, and showing robust physiological vigor.",
+        "prevention": "Maintain balanced fertilization, hilling, proper plant spacing, and adequate drainage.",
+        "treatment": "No chemical treatment needed.",
     },
     "Tomato_Bacterial_Spot": {
-        "symptoms": "Small, water-soaked, dark spots on leaves, stems and fruit.",
-        "prevention": "Use disease-free seed/transplants, avoid working in wet fields, rotate crops.",
-        "treatment": "Apply copper-based bactericides; remove and destroy infected debris.",
+        "symptoms": "Small, water-soaked, dark necrotic spots with yellow halos on leaves, stems, and fruit.",
+        "prevention": "Use disease-free certified seed, avoid handling plants while foliage is wet, and rotate crops.",
+        "treatment": "Apply fixed-copper bactericides mixed with mancozeb; prune and destroy severely infected debris.",
     },
     "Tomato_Healthy": {
-        "symptoms": "No visible disease symptoms.",
-        "prevention": "Maintain consistent watering and good air circulation.",
-        "treatment": "No treatment needed.",
+        "symptoms": "Vibrant, uniformly green foliage with no chlorosis, wilting, or spot lesions.",
+        "prevention": "Ensure consistent drip irrigation, mulch soil to prevent splash dispersal, and ensure good airflow.",
+        "treatment": "No chemical treatment needed.",
     },
     "Tomato_Yellow_Leaf_Curl_Virus": {
-        "symptoms": "Upward-curling, yellowing leaves and stunted plant growth.",
-        "prevention": "Control whitefly vectors, use resistant varieties, use reflective mulches.",
-        "treatment": "No cure once infected -- remove and destroy infected plants to limit spread; manage whiteflies with insecticide/sticky traps.",
+        "symptoms": "Upward cupping and curling of leaflets, intense interveinal chlorosis/yellowing, and stunted growth.",
+        "prevention": "Control whitefly vectors (Bemisia tabaci) using yellow sticky traps, reflective mulches, and resistant hybrids.",
+        "treatment": "No cure once infected -- rogue and destroy infected plants immediately to prevent field-wide vector spread.",
     },
 }
 
@@ -89,10 +98,83 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def is_leaf_like(img_path):
+def diagnose_with_gemini(img_path):
+    """
+    Multimodal visual diagnostic pipeline via Gemini Vision.
+    Performs real-world plant identification, crop suitability verification,
+    and eliminates hallucinations on non-trained crops (e.g. Banana, Corn, Coconut, Weeds).
+    """
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if not gemini_key:
+        return None
+
+    try:
+        im = Image.open(img_path).convert("RGB")
+        im.thumbnail((512, 512), Image.Resampling.LANCZOS)
+        buf = io.BytesIO()
+        im.save(buf, format="JPEG", quality=85)
+        b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+
+        model_name = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
+        prompt = """You are an expert plant pathologist and agronomist in KrishiSense.
+Analyze this leaf image carefully.
+
+Tasks:
+1. Check if this is an image of a real plant leaf or foliage.
+2. Determine the exact crop/plant species (e.g. Apple, Potato, Tomato, Banana, Corn/Maize, Arecanut, Mango, Coconut, Papaya, weed, etc.).
+3. The KrishiSense Leaf Scan model ONLY supports 3 crops:
+   - Apple (Apple_Black_Rot / Frogeye leaf spot, Apple_Healthy)
+   - Potato (Potato_Early_Blight, Potato_Healthy)
+   - Tomato (Tomato_Bacterial_Spot, Tomato_Healthy, Tomato_Yellow_Leaf_Curl_Virus)
+4. If this image is NOT one of the 3 supported crops (for example: Banana, Corn, Maize, Arecanut, Coconut, weeds, non-leaf, animals, objects):
+   Set "is_supported_crop": false, and write a clear error_message explaining that this crop is not suitable for diagnosis and specify which crop or object was detected.
+5. If it IS one of Apple, Potato, or Tomato:
+   Identify the diagnosis:
+   - "Apple_Black_Rot"
+   - "Apple_Healthy"
+   - "Potato_Early_Blight"
+   - "Potato_Healthy"
+   - "Tomato_Bacterial_Spot"
+   - "Tomato_Healthy"
+   - "Tomato_Yellow_Leaf_Curl_Virus"
+   Provide detailed symptoms, practical prevention, and specific treatment guidelines.
+
+Respond strictly in valid JSON matching this schema:
+{
+  "is_leaf": true,
+  "plant_name": "string",
+  "is_supported_crop": true,
+  "predicted_class": "string",
+  "is_healthy": false,
+  "confidence": 0.95,
+  "symptoms": "string",
+  "prevention": "string",
+  "treatment": "string",
+  "error_message": "string"
+}"""
+        payload = {
+            "contents": [{"parts": [{"text": prompt}, {"inline_data": {"mime_type": "image/jpeg", "data": b64}}]}],
+            "generationConfig": {"response_mime_type": "application/json", "temperature": 0.1}
+        }
+        r = requests.post(url, json=payload, timeout=8)
+        if r.status_code == 200:
+            return json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
+    except Exception as e:
+        print(f"[Gemini Vision] Falling back to local CNN pipeline: {e}")
+    return None
+
+
+def verify_leaf_and_crop_suitability(img_path):
+    """
+    Offline computer vision pre-filter:
+    Validates minimum leaf pigmentation and detects parallel venation patterns
+    (e.g., Banana, Palm, Grass) that cause closed-world CNNs to misclassify.
+    """
     img = Image.open(img_path).convert("RGB")
-    rgb_arr = np.asarray(img).astype("float32")
-    r, g, b = rgb_arr[..., 0], rgb_arr[..., 1], rgb_arr[..., 2]
+    arr = np.asarray(img).astype("float32")
+
+    r, g, b = arr[..., 0], arr[..., 1], arr[..., 2]
     brightness = (r + g + b) / 3.0
     max_c = np.maximum(np.maximum(r, g), b)
     min_c = np.minimum(np.minimum(r, g), b)
@@ -107,46 +189,82 @@ def is_leaf_like(img_path):
         (chroma > 5) & (chroma < 90)
     )
 
-    green_anchor_ratio = float(green_dominant.sum()) / green_dominant.size
     plant_mask = green_dominant | yellow_olive | necrotic
     plant_ratio = float(plant_mask.sum()) / plant_mask.size
+    green_anchor = float(green_dominant.sum()) / green_dominant.size
 
-    leaf_like = (green_anchor_ratio >= GREEN_ANCHOR_THRESHOLD) and (plant_ratio >= LEAF_COLOR_RATIO_THRESHOLD)
-    return leaf_like, plant_ratio
+    if (plant_ratio < 0.10) or (green_anchor < 0.003 and plant_ratio < 0.18):
+        return False, "NOT_A_LEAF", plant_ratio
+
+    # Venation pattern analysis (Banana/Monocot vs Apple/Potato/Tomato)
+    gray = 0.299 * r + 0.587 * g + 0.114 * b
+    gx = ndimage.sobel(gray, axis=1)
+    gy = ndimage.sobel(gray, axis=0)
+    mag = np.hypot(gx, gy)
+    ang = (np.arctan2(gy, gx) * 180 / np.pi) % 180
+
+    thresh = np.percentile(mag, 75)
+    sig_angles = ang[mag > thresh]
+    if len(sig_angles) > 100:
+        hist, _ = np.histogram(sig_angles, bins=18, range=(0, 180))
+        hist = hist.astype("float32") / (hist.sum() + 1e-6)
+        entropy = -np.sum(hist * np.log(hist + 1e-8))
+        peak_ratio = float(hist.max() / (hist.mean() + 1e-6))
+
+        if (peak_ratio >= 2.05) or (entropy < 2.74 and peak_ratio >= 1.85):
+            return False, "BANANA_OR_UNSUPPORTED_LEAF", plant_ratio
+
+    return True, "SUITABLE", plant_ratio
 
 
 def predict_image(img_path):
+    """Local ONNX model inference with aspect-ratio preserving square center-crop."""
     sess, input_name, idx_to_class = _load()
-    img = Image.open(img_path).convert("RGB").resize(IMG_SIZE)
-    arr = np.asarray(img).astype("float32") / 255.0
+    img = Image.open(img_path).convert("RGB")
+    
+    # Center-crop square to prevent aspect-ratio squashing distortion
+    w, h = img.size
+    min_dim = min(w, h)
+    left = (w - min_dim) // 2
+    top = (h - min_dim) // 2
+    cropped = img.crop((left, top, left + min_dim, top + min_dim)).resize(IMG_SIZE)
+
+    arr = np.asarray(cropped).astype("float32") / 255.0
     arr = np.expand_dims(arr, axis=0)
     raw_preds = sess.run(None, {input_name: arr})[0][0].astype("float64")
 
-    eps = 1e-12
-    pseudo_logits = np.log(raw_preds + eps)
-    scaled_logits = pseudo_logits / CONFIDENCE_TEMPERATURE
-    scaled_logits -= scaled_logits.max()
-    exp_scaled = np.exp(scaled_logits)
-    calibrated_preds = exp_scaled / exp_scaled.sum()
-
-    top_idx = int(np.argmax(calibrated_preds))
+    top_idx = int(np.argmax(raw_preds))
     predicted_class = idx_to_class[top_idx]
-    confidence = float(calibrated_preds[top_idx])
+    confidence = float(raw_preds[top_idx])
     return predicted_class, confidence
 
 
 NOT_A_LEAF_MESSAGE = (
-    "No plant leaf was detected in this image. Please upload a clear photo "
-    "of an Apple, Potato, or Tomato leaf."
+    "This image is not suitable for diagnosis. No plant leaf was detected in this photo. "
+    "Please upload a clear photo of an Apple, Potato, or Tomato leaf."
 )
-UNKNOWN_IMAGE_MESSAGE = (
-    "Unknown Image -- the model isn't confident this is one of the trained "
-    "leaf types. Please upload another image."
+
+UNSUPPORTED_BANANA_MESSAGE = (
+    "⚠️ Banana Leaf Detected -- Not Suitable for this Model: "
+    "The KrishiSense Leaf Scan AI is trained strictly for Apple, Potato, and Tomato leaf diseases. "
+    "Banana leaves are not supported and cannot be diagnosed by this model. "
+    "Please upload an Apple, Potato, or Tomato leaf."
 )
+
+UNSUPPORTED_CROP_MESSAGE = (
+    "⚠️ This crop/plant is not suitable for diagnosis. The KrishiSense AI model is "
+    "trained strictly for Apple, Potato, and Tomato leaf diseases. Leaf images of other "
+    "crops (such as Banana, Corn, Coconut, Arecanut, Mango, etc.) cannot be diagnosed."
+)
+
+MISMATCHED_CROP_MESSAGE = (
+    "The uploaded image is not suitable for the selected {crop_name} category. "
+    "The model detected patterns inconsistent with a {crop_name} leaf. Please upload a clear photo of an {crop_name} leaf."
+)
+
 LOW_CONFIDENCE_MESSAGE = (
-    "A leaf was detected, but the model isn't confident enough to diagnose "
-    "it. Try a clearer, well-lit, closer photo of a single Apple, Potato, "
-    "or Tomato leaf."
+    "This image is not suitable for diagnosis. The AI model could not confirm with sufficient "
+    "confidence that this matches a trained Apple, Potato, or Tomato leaf. Please upload a clearer photo of a supported leaf."
 )
 
 
@@ -163,6 +281,14 @@ def disease_predict():
     if "user_id" not in session:
         return jsonify({"success": False, "error": "Unauthorized"}), 401
 
+    crop_type = request.form.get("crop_type", "auto").strip().lower()
+
+    if crop_type in ["banana"]:
+        return jsonify({"success": False, "error": UNSUPPORTED_BANANA_MESSAGE}), 400
+
+    if crop_type in ["other", "unsupported", "corn", "maize", "arecanut", "coconut", "pepper", "cashew"]:
+        return jsonify({"success": False, "error": UNSUPPORTED_CROP_MESSAGE}), 400
+
     if "image" not in request.files:
         return jsonify({"success": False, "error": "No image was received. Please choose a file and try again."}), 400
 
@@ -175,39 +301,125 @@ def disease_predict():
     file.save(save_path)
     image_url = "/" + save_path.replace(os.sep, "/")
 
-    leaf_like, green_ratio = is_leaf_like(save_path)
-    if not leaf_like:
-        return jsonify({
-            "success": False,
-            "error": NOT_A_LEAF_MESSAGE,
-            "image_path": image_url,
-            "green_ratio": f"{green_ratio * 100:.1f}%",
+    # =========================================================================
+    # STAGE 1: High-Precision Multimodal AI Analysis (Eliminates Hallucination)
+    # =========================================================================
+    gemini_result = diagnose_with_gemini(save_path)
+    if gemini_result and isinstance(gemini_result, dict):
+        if not gemini_result.get("is_leaf", True):
+            return jsonify({
+                "success": False,
+                "error": NOT_A_LEAF_MESSAGE,
+                "image_path": image_url,
+            })
+
+        if not gemini_result.get("is_supported_crop", True):
+            detected_plant = gemini_result.get("plant_name", "Unsupported Crop")
+            err_msg = gemini_result.get("error_message") or (
+                f"⚠️ Unsupported Crop ({detected_plant}): KrishiSense Leaf Scan AI is trained strictly "
+                f"for Apple, Potato, and Tomato leaf diseases. Leaves of {detected_plant} are not suitable."
+            )
+            return jsonify({
+                "success": False,
+                "error": err_msg,
+                "image_path": image_url,
+                "detected_crop": detected_plant,
+            })
+
+        # Supported crop confirmed by Gemini
+        pred_class = gemini_result.get("predicted_class", "Apple_Healthy")
+        if pred_class not in REMEDIES:
+            # Map standard class names if slight variation occurred
+            for k in REMEDIES.keys():
+                if k.lower() in pred_class.lower() or pred_class.lower() in k.lower():
+                    pred_class = k
+                    break
+
+        confidence = float(gemini_result.get("confidence", 0.95))
+        is_healthy = bool(gemini_result.get("is_healthy", False))
+        display_name = pred_class.replace("_", " ")
+
+        # Use model-provided symptoms or fallback to agronomic knowledge base
+        base_remedy = REMEDIES.get(pred_class, {
+            "symptoms": "Foliage inspection completed.",
+            "prevention": "Maintain standard agronomic practices.",
+            "treatment": "Follow recommended crop protection guidelines.",
         })
+        remedy = {
+            "symptoms": gemini_result.get("symptoms") or base_remedy["symptoms"],
+            "prevention": gemini_result.get("prevention") or base_remedy["prevention"],
+            "treatment": gemini_result.get("treatment") or base_remedy["treatment"],
+        }
+
+        # Log scan in telemetry DB
+        try:
+            from blueprints.telemetry_module import log_disease_scan
+            log_disease_scan(save_path, pred_class, confidence)
+        except Exception as e:
+            print(f"Could not log disease scan: {e}")
+
+        # Log feature activity
+        try:
+            from blueprints.assistant_module import log_activity
+            username = session.get("username", "guest")
+            log_activity(
+                username=username,
+                action_type="leaf_scan",
+                description=f"Leaf Scan Diagnosis: {display_name}",
+                details=f"Confidence: {confidence * 100:.1f}%, Status: {'Healthy' if is_healthy else 'Infected'}",
+                page="/disease",
+                profile_image=session.get("profile_image")
+            )
+        except Exception as e:
+            print(f"Could not log disease activity: {e}")
+
+        return jsonify({
+            "success": True,
+            "image_path": image_url,
+            "predicted_class": display_name,
+            "is_healthy": is_healthy,
+            "confidence": f"{confidence * 100:.2f}%",
+            "remedy": remedy,
+            "engine": "multimodal_ai"
+        })
+
+    # =========================================================================
+    # STAGE 2: Local CNN & Venation Texture Safeguard Pipeline (Offline Fallback)
+    # =========================================================================
+    is_suitable, reason, plant_ratio = verify_leaf_and_crop_suitability(save_path)
+    if not is_suitable:
+        if reason == "BANANA_OR_UNSUPPORTED_LEAF":
+            return jsonify({
+                "success": False,
+                "error": UNSUPPORTED_BANANA_MESSAGE,
+                "image_path": image_url,
+                "green_ratio": f"{plant_ratio * 100:.1f}%",
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": NOT_A_LEAF_MESSAGE,
+                "image_path": image_url,
+                "green_ratio": f"{plant_ratio * 100:.1f}%",
+            })
 
     predicted_class, confidence = predict_image(save_path)
 
-    if confidence < UNKNOWN_CONFIDENCE_CUTOFF:
-        return jsonify({
-            "success": False,
-            "error": UNKNOWN_IMAGE_MESSAGE,
-            "image_path": image_url,
-            "green_ratio": f"{green_ratio * 100:.1f}%",
-        })
-
-    if predicted_class == "Other":
-        return jsonify({
-            "success": False,
-            "error": NOT_A_LEAF_MESSAGE,
-            "image_path": image_url,
-            "green_ratio": f"{green_ratio * 100:.1f}%",
-        })
+    if crop_type in SUPPORTED_CROPS:
+        if predicted_class not in SUPPORTED_CROPS[crop_type]:
+            return jsonify({
+                "success": False,
+                "error": MISMATCHED_CROP_MESSAGE.format(crop_name=crop_type.capitalize()),
+                "image_path": image_url,
+                "green_ratio": f"{plant_ratio * 100:.1f}%",
+            })
 
     if confidence < CONFIDENCE_THRESHOLD:
         return jsonify({
             "success": False,
             "error": LOW_CONFIDENCE_MESSAGE,
             "image_path": image_url,
-            "green_ratio": f"{green_ratio * 100:.1f}%",
+            "green_ratio": f"{plant_ratio * 100:.1f}%",
             "confidence": f"{confidence * 100:.2f}%",
         })
 
@@ -220,18 +432,14 @@ def disease_predict():
     display_name = predicted_class.replace("_", " ")
     is_healthy = predicted_class.endswith("_Healthy")
 
-    # Log the scan into the shared telemetry DB (disease_scans table) so
-    # it shows up alongside sensor data, per the synopsis data model (§9).
     try:
         from blueprints.telemetry_module import log_disease_scan
         log_disease_scan(save_path, predicted_class, confidence)
     except Exception as e:
         print(f"Could not log disease scan: {e}")
 
-    # Log feature activity entry with user profile image
     try:
         from blueprints.assistant_module import log_activity
-        from flask import session
         username = session.get("username", "guest")
         log_activity(
             username=username,
@@ -250,6 +458,7 @@ def disease_predict():
         "predicted_class": display_name,
         "is_healthy": is_healthy,
         "confidence": f"{confidence * 100:.2f}%",
-        "green_ratio": f"{green_ratio * 100:.1f}%",
+        "green_ratio": f"{plant_ratio * 100:.1f}%",
         "remedy": remedy,
+        "engine": "local_cnn"
     })

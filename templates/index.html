@@ -317,16 +317,50 @@
         .result-header .title-group .sub { font-size: 0.82rem; color: var(--text-muted); }
 
         .badge-result {
-            padding: 6px 20px;
+            padding: 8px 22px;
             border-radius: 50px;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             font-weight: 800;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.25s ease;
         }
-        .badge-sell { background: #ef4444; color: white; box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3); }
-        .badge-store { background: #f59e0b; color: #0f172a; box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3); }
-        .badge-wait { background: #0284c7; color: white; box-shadow: 0 2px 10px rgba(2, 132, 199, 0.3); }
+        .badge-sell { background: #dc2626; color: white; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4); }
+        .badge-store { background: #d97706; color: white; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4); }
+        .badge-wait { background: #0284c7; color: white; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); }
+
+        .action-hero-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 16px 0 22px 0;
+            padding: 18px 24px;
+            border-radius: 14px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+        .action-hero-banner.action-sell-theme {
+            background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%);
+            border-color: #ef4444;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.15);
+        }
+        .action-hero-banner.action-store-theme {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-color: #f59e0b;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.18);
+        }
+        .action-hero-banner.action-wait-theme {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-color: #0284c7;
+            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.15);
+        }
 
         /* ========== INFO GRID ========== */
         .info-grid-dashboard {
@@ -696,15 +730,17 @@
             <a href="{{ url_for('telemetry_bp.telemetry_dashboard') }}" class="btn-compare" data-i18n="nav.sensornode">
                 <i class="fas fa-satellite-dish"></i> Sensor Node
             </a>
+            {% if session.get('is_admin') %}
             <a href="{{ url_for('model_insights') }}" class="btn-compare" data-i18n="nav.insights">
                 <i class="fas fa-chart-line"></i> Insights
             </a>
             <a href="{{ url_for('model_comparison') }}" class="btn-compare" id="compareNavBtn">
                 <i class="fas fa-table"></i> <span id="compareNavLabel">Compare</span>
             </a>
-            <button type="button" class="btn-compare" onclick="openKrishiVideoModal()" title="Watch KrishiSense Demo Video" style="cursor:pointer; background:rgba(245,158,11,0.18); border:1px solid #f59e0b; color:#fef08a;">
-                <i class="fa-solid fa-circle-play"></i> <span>Demo Video</span>
-            </button>
+            <a href="{{ url_for('admin_dashboard.admin_dashboard') }}" class="btn-compare" data-i18n="nav.admin">
+                <i class="fas fa-cogs"></i> Admin
+            </a>
+            {% endif %}
                     <div class="user-profile-badge" id="openProfileModalBtn" onclick="openKrishiProfileModal()" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; padding:3px 10px 3px 4px; border-radius:24px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; user-select:none; transition:all 0.2s ease; text-decoration:none;" title="Click to view & change profile photo">
             <img src="{{ profile_image }}" alt="{{ username }}" class="topbar-user-avatar" width="34" height="34" style="width:34px; height:34px; min-width:34px; min-height:34px; max-width:34px; max-height:34px; border-radius:50%; object-fit:cover; display:inline-block; border:2px solid #f59e0b; background:#ffffff; vertical-align:middle; box-shadow:0 2px 6px rgba(0,0,0,0.25);" onerror="this.onerror=null; this.src='/static/img/default-avatar.png';">
             <span style="font-weight:700; font-size:0.86rem; color:#ffffff;">{{ username }}</span>
@@ -726,8 +762,12 @@
 
     <!-- SELECTION CARD -->
     <div class="selection-card">
-        <div class="selection-title">
-            <i class="fas fa-sliders-h"></i> <span id="selectionLabel">Select Crop, Market & Month</span>
+        <div class="selection-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div><i class="fas fa-sliders-h"></i> <span id="selectionLabel">Select Crop, Market & Month</span></div>
+            <div id="liveSyncBadge" style="display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:700; color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; padding:4px 10px; border-radius:14px;" title="Connected to National Agmarknet Data.gov.in API - Live sync runs automatically on prediction">
+                <span style="width:7px; height:7px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+                <span>Live Mandi: Auto-Sync Active</span>
+            </div>
         </div>
         <div class="form-group-dashboard">
             <div>
@@ -787,6 +827,26 @@
                 <span class="sub" id="resultDate">—</span>
             </div>
             <span id="recommendationBadge" class="badge-result">—</span>
+        </div>
+
+        <!-- HIGH-VISIBILITY ACTION HERO BANNER -->
+        <div class="action-hero-banner" id="actionHeroBanner">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div id="actionIconBox" style="width:56px; height:56px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.75rem; color:#fff; background:#64748b; box-shadow:0 4px 14px rgba(0,0,0,0.15); flex-shrink:0;">
+                    <i class="fa-solid fa-bullhorn" id="actionIcon"></i>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:#64748b;" id="actionSectionLabel">
+                        RECOMMENDED ACTION
+                    </div>
+                    <div id="actionMainText" style="font-size:1.7rem; font-weight:900; letter-spacing:0.02em; line-height:1.2; color:#0f172a;">
+                        —
+                    </div>
+                </div>
+            </div>
+            <div id="actionAdvicePill" style="font-size:0.95rem; font-weight:600; max-width:520px; color:#334155; line-height:1.45; background:rgba(255,255,255,0.7); padding:10px 16px; border-radius:10px; border:1px solid rgba(0,0,0,0.06);">
+                Select commodity and market to see the recommended advisory action.
+            </div>
         </div>
 
         <!-- Info Grid -->
@@ -942,7 +1002,9 @@ const translations = {
         'loadingYearlyData': 'Loading yearly data...',
         'runPredictionFirst': 'Run a prediction first to see yearly data',
         'monthlyAvg': 'Monthly Avg',
-        'lastUpdated': 'Last updated',
+        'lastUpdated': 'Last Market Trade',
+        'forecastTarget': 'Forecast for',
+        'today': 'Today',
         'monthlyAvgPrice': 'Monthly Avg Price',
         'predicted': 'Predicted price',
         'current': 'Current',
@@ -976,7 +1038,15 @@ const translations = {
         'basedOnMonthlyAvg': 'Based on monthly average of ₹{price} from {count} records in {years} years',
         'forecastTableTitle': 'Next 5 Months Forecast',
         'forecastMonthHeader': 'Month',
-        'forecastPriceHeader': 'Predicted Value'
+        'forecastPriceHeader': 'Predicted Value',
+        'actionSectionLabel': 'RECOMMENDED ACTION',
+        'actionPrefix': 'ACTION: ',
+        'actionSell': 'SELL NOW',
+        'actionStore': 'STORE CROP',
+        'actionWait': 'WAIT & MONITOR',
+        'actionSellAdvice': 'Market prices are expected to drop. Sell your harvested crop now at the current mandi price to maximize profit and avoid future losses.',
+        'actionStoreAdvice': 'Market prices are predicted to rise. Hold and store your crop now to sell later at a significantly higher predicted price.',
+        'actionWaitAdvice': 'Prices are steady with moderate fluctuation. Wait and monitor market trends over the coming days before trading.'
     },
     'kn': {
         'logoSub': 'ಕೃಷಿ ಬೆಲೆ ಮುನ್ಸೂಚನೆ',
@@ -1013,7 +1083,9 @@ const translations = {
         'loadingYearlyData': 'ವಾರ್ಷಿಕ ಡೇಟಾ ಲೋಡ್ ಆಗುತ್ತಿದೆ...',
         'runPredictionFirst': 'ವಾರ್ಷಿಕ ಡೇಟಾ ನೋಡಲು ಮೊದಲು ಮುನ್ಸೂಚನೆ ರನ್ ಮಾಡಿ',
         'monthlyAvg': 'ಮಾಸಿಕ ಸರಾಸರಿ',
-        'lastUpdated': 'ಕೊನೆಯ ನವೀಕರಣ',
+        'lastUpdated': 'ಕೊನೆಯ ಮಾರುಕಟ್ಟೆ ವಹಿವಾಟು',
+        'forecastTarget': 'ಮುನ್ಸೂಚನೆ',
+        'today': 'ಇಂದು',
         'monthlyAvgPrice': 'ಮಾಸಿಕ ಸರಾಸರಿ ಬೆಲೆ',
         'predicted': 'ಮುನ್ಸೂಚಿತ ಬೆಲೆ',
         'current': 'ಪ್ರಸ್ತುತ',
@@ -1047,7 +1119,15 @@ const translations = {
         'basedOnMonthlyAvg': '₹{price} ರ ಮಾಸಿಕ ಸರಾಸರಿ ಆಧಾರದಲ್ಲಿ {count} ದಾಖಲೆಗಳು {years} ವರ್ಷಗಳಲ್ಲಿ',
         'forecastTableTitle': 'ಮುಂದಿನ 5 ತಿಂಗಳ ಮುನ್ಸೂಚನೆ',
         'forecastMonthHeader': 'ತಿಂಗಳು',
-        'forecastPriceHeader': 'ಮುನ್ಸೂಚಿತ ಬೆಲೆ'
+        'forecastPriceHeader': 'ಮುನ್ಸೂಚಿತ ಬೆಲೆ',
+        'actionSectionLabel': 'ಮುನ್ಸೂಚಿತ ಕ್ರಮ',
+        'actionPrefix': 'ಕ್ರಮ: ',
+        'actionSell': 'ಈಗ ಮಾರಾಟ ಮಾಡಿ',
+        'actionStore': 'ಬೆಳೆಯನ್ನು ಸಂಗ್ರಹಿಸಿ',
+        'actionWait': 'ನಿರೀಕ್ಷಿಸಿ ಮತ್ತು ಗಮನಿಸಿ',
+        'actionSellAdvice': 'ಮಾರುಕಟ್ಟೆ ಬೆಲೆ ಕುಸಿಯುವ ಸಾಧ್ಯತೆಯಿದೆ. ನಷ್ಟವನ್ನು ತಪ್ಪಿಸಲು ಈಗಲೇ ಪ್ರಸ್ತುತ ಬೆಲೆಗೆ ಮಾರಾಟ ಮಾಡಿ.',
+        'actionStoreAdvice': 'ಮಾರುಕಟ್ಟೆ ಬೆಲೆ ಗಣನೀಯವಾಗಿ ಏರಿಕೆಯಾಗುವ ನಿರೀಕ್ಷೆಯಿದೆ. ಹೆಚ್ಚಿನ ಲಾಭಕ್ಕಾಗಿ ಬೆಳೆಯನ್ನು ಸಂಗ್ರಹಿಸಿ ನಂತರ ಮಾರಾಟ ಮಾಡಿ.',
+        'actionWaitAdvice': 'ಬೆಲೆಗಳು ಸ್ಥಿರವಾಗಿವೆ. ವ್ಯಾಪಾರ ಮಾಡುವ ಮೊದಲು ಮುಂದಿನ ದಿನಗಳಲ್ಲಿ ಮಾರುಕಟ್ಟೆಯನ್ನು ಗಮನಿಸಿ.'
     }
 };
 
@@ -1343,13 +1423,81 @@ function updateDynamicContent(data) {
         }
     }
     
+    var rec = (data.recommendation || '').toLowerCase();
+    var banner = document.getElementById('actionHeroBanner');
+    var iconBox = document.getElementById('actionIconBox');
+    var icon = document.getElementById('actionIcon');
+    var mainText = document.getElementById('actionMainText');
+    var advicePill = document.getElementById('actionAdvicePill');
+    var sectionLabel = document.getElementById('actionSectionLabel');
     var badge = document.getElementById('recommendationBadge');
-    if (badge) {
-        var rec = (data.recommendation || '').toLowerCase();
-        if (rec === 'sell') badge.textContent = t.sell;
-        else if (rec === 'store') badge.textContent = t.store;
-        else if (rec === 'wait') badge.textContent = t.wait;
-        else badge.textContent = data.recommendation || '—';
+
+    if (sectionLabel) sectionLabel.textContent = t.actionSectionLabel || 'RECOMMENDED ACTION';
+
+    if (rec === 'sell') {
+        if (badge) {
+            badge.className = 'badge-result badge-sell';
+            badge.innerHTML = '<i class="fa-solid fa-arrow-trend-down"></i> ' + (t.actionPrefix || 'ACTION: ') + t.sell;
+        }
+        if (banner) banner.className = 'action-hero-banner action-sell-theme';
+        if (iconBox) {
+            iconBox.style.background = '#dc2626';
+            iconBox.style.boxShadow = '0 4px 14px rgba(220, 38, 38, 0.4)';
+        }
+        if (icon) icon.className = 'fa-solid fa-cart-shopping';
+        if (mainText) {
+            mainText.style.color = '#dc2626';
+            mainText.textContent = t.actionSell || 'SELL NOW';
+        }
+        if (advicePill) {
+            advicePill.textContent = t.actionSellAdvice || 'Market prices are expected to drop. Sell your harvested crop now to maximize profit and avoid future losses.';
+        }
+    } else if (rec === 'store') {
+        if (badge) {
+            badge.className = 'badge-result badge-store';
+            badge.innerHTML = '<i class="fa-solid fa-warehouse"></i> ' + (t.actionPrefix || 'ACTION: ') + t.store;
+        }
+        if (banner) banner.className = 'action-hero-banner action-store-theme';
+        if (iconBox) {
+            iconBox.style.background = '#d97706';
+            iconBox.style.boxShadow = '0 4px 14px rgba(217, 119, 6, 0.4)';
+        }
+        if (icon) icon.className = 'fa-solid fa-warehouse';
+        if (mainText) {
+            mainText.style.color = '#b45309';
+            mainText.textContent = t.actionStore || 'STORE CROP';
+        }
+        if (advicePill) {
+            advicePill.textContent = t.actionStoreAdvice || 'Market prices are predicted to rise. Hold and store your crop now to sell later at a higher price.';
+        }
+    } else if (rec === 'wait') {
+        if (badge) {
+            badge.className = 'badge-result badge-wait';
+            badge.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> ' + (t.actionPrefix || 'ACTION: ') + t.wait;
+        }
+        if (banner) banner.className = 'action-hero-banner action-wait-theme';
+        if (iconBox) {
+            iconBox.style.background = '#0284c7';
+            iconBox.style.boxShadow = '0 4px 14px rgba(2, 132, 199, 0.4)';
+        }
+        if (icon) icon.className = 'fa-solid fa-hourglass-half';
+        if (mainText) {
+            mainText.style.color = '#0369a1';
+            mainText.textContent = t.actionWait || 'WAIT & MONITOR';
+        }
+        if (advicePill) {
+            advicePill.textContent = t.actionWaitAdvice || 'Prices are stable. Wait and observe market trends before trading.';
+        }
+    } else {
+        if (badge) {
+            badge.className = 'badge-result';
+            badge.textContent = data.recommendation || '—';
+        }
+        if (banner) banner.className = 'action-hero-banner';
+        if (mainText) {
+            mainText.style.color = '#1e293b';
+            mainText.textContent = data.recommendation || '—';
+        }
     }
     
     var resultDate = document.getElementById('resultDate');
@@ -1358,7 +1506,11 @@ function updateDynamicContent(data) {
             var monthName = getMonthName(data.selected_month) || data.selected_month;
             resultDate.textContent = t.monthlyAvg + ' (' + monthName + ')';
         } else {
-            resultDate.textContent = t.lastUpdated + ': ' + data.last_date;
+            var dateText = (t.lastUpdated || 'Last Market Trade') + ': ' + (data.last_date || '—');
+            if (data.target_date) {
+                dateText += '  •  ' + (t.forecastTarget || 'Forecast for') + ': ' + (t.today || 'Today') + ' (' + data.target_date + ')';
+            }
+            resultDate.textContent = dateText;
         }
     }
     
@@ -1574,7 +1726,11 @@ function displayPredictionResult(data) {
             document.getElementById('monthlyRecordInfo').style.display = 'inline';
         }
     } else {
-        document.getElementById('resultDate').textContent = t.lastUpdated + ': ' + data.last_date;
+        var dateText = (t.lastUpdated || 'Last Market Trade') + ': ' + (data.last_date || '—');
+        if (data.target_date) {
+            dateText += '  •  ' + (t.forecastTarget || 'Forecast for') + ': ' + (t.today || 'Today') + ' (' + data.target_date + ')';
+        }
+        document.getElementById('resultDate').textContent = dateText;
         document.getElementById('priceLabel').textContent = t.currentPrice;
         document.getElementById('monthlyRecordInfo').style.display = 'none';
     }
@@ -1950,6 +2106,70 @@ document.addEventListener('visibilitychange', function() {
     }
 });
 
+function syncLivePricesUI() {
+    var btn = document.getElementById('syncLivePriceBtn');
+    var icon = document.getElementById('syncLiveIcon');
+    var label = document.getElementById('syncLiveLabel');
+    var statusEl = document.getElementById('statusMsg');
+
+    if (!btn) return;
+    btn.disabled = true;
+    if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+    if (label) label.textContent = 'Syncing...';
+
+    if (statusEl) {
+        statusEl.className = 'status-msg';
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#eff6ff';
+        statusEl.style.color = '#1d4ed8';
+        statusEl.style.border = '1px solid #bfdbfe';
+        statusEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-down fa-spin" style="margin-right:6px;"></i> Connecting to Data.gov.in Live Agmarknet API...';
+    }
+
+    fetch('/api/sync-live-prices', { method: 'POST' })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            btn.disabled = false;
+            if (icon) icon.className = 'fa-solid fa-cloud-arrow-down';
+            if (label) label.textContent = 'Sync Live Prices';
+
+            if (data.success) {
+                if (statusEl) {
+                    statusEl.style.background = '#ecfdf5';
+                    statusEl.style.color = '#065f46';
+                    statusEl.style.border = '1px solid #a7f3d0';
+                    statusEl.innerHTML = '<i class="fa-solid fa-circle-check" style="margin-right:6px;"></i> ' + 
+                        (data.message || 'Live prices updated successfully.') + 
+                        (data.latest_date ? ' (Latest date: ' + data.latest_date + ')' : '');
+                }
+                // Trigger re-fetch of current commodity/market if selected
+                var comm = document.getElementById('commodity').value;
+                var mkt = document.getElementById('market').value;
+                if (comm && mkt && typeof fetchPrediction === 'function') {
+                    fetchPrediction();
+                }
+            } else {
+                if (statusEl) {
+                    statusEl.style.background = '#fef2f2';
+                    statusEl.style.color = '#991b1b';
+                    statusEl.style.border = '1px solid #fecaca';
+                    statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i> Sync failed: ' + (data.error || 'Unknown error');
+                }
+            }
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            if (icon) icon.className = 'fa-solid fa-cloud-arrow-down';
+            if (label) label.textContent = 'Sync Live Prices';
+            if (statusEl) {
+                statusEl.style.background = '#fef2f2';
+                statusEl.style.color = '#991b1b';
+                statusEl.style.border = '1px solid #fecaca';
+                statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i> Network error connecting to live price sync endpoint.';
+            }
+        });
+}
+
 console.log('[KrishiSense] Dashboard loaded successfully');
 console.log('[KrishiSense] X-axis now shows full dates with year');
 console.log('[KrishiSense] Yearly comparison chart shows all years');
@@ -1966,40 +2186,6 @@ console.log('[KrishiSense] Model comparison available');
 
 {% include 'profile_modal.html' %}
 
-<!-- Demo Video Modal -->
-<div id="krishiVideoModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:999999; align-items:center; justify-content:center; padding:16px;" onclick="closeKrishiVideoModal()">
-  <div style="position:relative; width:100%; max-width:880px; background:#000; border-radius:16px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,0.6); border:2px solid #f59e0b;" onclick="event.stopPropagation();">
-    <div style="display:flex; justify-content:space-between; align-items:center; background:#092115; padding:12px 18px; border-bottom:1px solid #f59e0b; color:#fff;">
-      <span style="font-weight:700;"><i class="fa-solid fa-play" style="color:#f59e0b; margin-right:6px;"></i> KrishiSense Platform Overview</span>
-      <button type="button" onclick="closeKrishiVideoModal()" style="background:none; border:none; color:#fff; font-size:1.6rem; cursor:pointer; line-height:1;" title="Close">&times;</button>
-    </div>
-    <video id="dashboardVideoPlayer" controls playsinline style="width:100%; height:auto; max-height:75vh; display:block;" src="{{ url_for('static', filename='videos/krishisense.mp4') }}">
-      Your browser does not support HTML video.
-    </video>
-  </div>
-</div>
-
-<script>
-function openKrishiVideoModal() {
-  var modal = document.getElementById('krishiVideoModal');
-  var video = document.getElementById('dashboardVideoPlayer');
-  if (modal) {
-    modal.style.display = 'flex';
-    if (video) video.play().catch(function(){});
-  }
-}
-function closeKrishiVideoModal() {
-  var modal = document.getElementById('krishiVideoModal');
-  var video = document.getElementById('dashboardVideoPlayer');
-  if (modal) {
-    modal.style.display = 'none';
-    if (video) video.pause();
-  }
-}
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeKrishiVideoModal();
-});
-</script>
 
 </body>
 </html>

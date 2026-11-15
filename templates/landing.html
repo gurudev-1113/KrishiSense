@@ -308,18 +308,21 @@ footer { text-align:center; padding:34px; color:var(--text-muted); font-size:0.8
       <h3>Real-Time Monitoring</h3>
       <p>Soil moisture, air temp/humidity, soil temperature and pH sampled every 10s from the pot and streamed over Wi-Fi.</p>
     </a>
-    <a href="{{ url_for('crop_bp.crop_form') if session.get('user_id') else url_for('login') }}" class="module-card">
+    {# Crop Recommender (temporarily disabled) #}
+    {# <a href="{{ url_for('crop_bp.crop_form') if session.get('user_id') else url_for('login') }}" class="module-card">
       <div class="m-code">M2 &middot; MACHINE LEARNING</div>
       <div class="m-icon"><i class="fa-solid fa-seedling" style="color:#10b981;"></i></div>
       <h3>Crop Recommender</h3>
       <p>Scores 22 candidate crops against soil &amp; climate values across 5 algorithms, returns the top-3 with confidence.</p>
-    </a>
-    <a href="{{ url_for('disease_bp.disease_index') if session.get('user_id') else url_for('login') }}" class="module-card">
+    </a> #}
+
+    {# Leaf Disease Detection (temporarily disabled) #}
+    {# <a href="{{ url_for('disease_bp.disease_index') if session.get('user_id') else url_for('login') }}" class="module-card">
       <div class="m-code">M3 &middot; DEEP LEARNING</div>
       <div class="m-icon"><i class="fa-solid fa-leaf" style="color:#059669;"></i></div>
       <h3>Leaf Disease Detection</h3>
       <p>Classifies an uploaded tomato/potato/apple leaf as healthy or diseased, with confidence and a treatment note.</p>
-    </a>
+    </a> #}
     <a href="{{ url_for('dashboard') if session.get('user_id') else url_for('login') }}" class="module-card">
       <div class="m-code">M4 &middot; MACHINE LEARNING</div>
       <div class="m-icon"><i class="fa-solid fa-chart-line" style="color:var(--gold);"></i></div>

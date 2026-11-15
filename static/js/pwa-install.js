@@ -15,9 +15,19 @@
   // 1. Register Service Worker (where supported)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
+      navigator.serviceWorker.register('/static/service-worker.js')
         .then((reg) => {
           console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
+          // Handle service worker updates
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated') {
+                console.log('[PWA] New service worker activated - refresh recommended');
+                window.postMessage({ type: 'REFRESH_PROMPT' }, '*');
+              }
+            });
+          });
         })
         .catch((err) => {
           console.warn('[PWA] ServiceWorker registration notice:', err);
