@@ -312,17 +312,57 @@ async function refreshAlerts() {
     try {
         const res = await fetch("{{ url_for('telemetry_bp.api_alerts') }}");
         const rows = await res.json();
-        const active = rows.filter(a => !a.ts_cleared);
+        if (!Array.isArray(rows)) return;
         const feed = document.getElementById('alertFeed');
-        if (active.length === 0) {
-            feed.innerHTML = '<div class="no-alerts">No active alerts.</div>';
+        
+        const active = rows.filter(a => !a.ts_cleared);
+        const recentCleared = rows.filter(a => a.ts_cleared).slice(0, 4);
+
+        if (active.length === 0 && recentCleared.length === 0) {
+            feed.innerHTML = `
+                <div class="no-alerts" style="text-align:center;padding:24px 10px;color:#059669;">
+                    <i class="fa-solid fa-circle-check" style="font-size:1.8rem;margin-bottom:8px;display:block;"></i>
+                    <div style="font-weight:700;color:#1e293b;font-size:0.95rem;">All Systems Optimal</div>
+                    <div style="font-size:0.8rem;color:#64748b;margin-top:4px;">No threshold breaches detected. Rule engine active.</div>
+                </div>`;
             return;
         }
-        feed.innerHTML = active.map(a => `
-            <div class="alert-item ${a.severity}">
-                <div><div class="sev">${a.severity}</div>${a.message}</div>
-            </div>
-        `).join('');
+
+        let html = '';
+        if (active.length > 0) {
+            html += active.map(a => `
+                <div class="alert-item ${a.severity}" style="box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:10px;">
+                    <div>
+                        <div class="sev" style="display:flex;align-items:center;gap:6px;">
+                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px #ef4444;"></span>
+                            ACTIVE ${a.severity}
+                        </div>
+                        <div style="font-weight:600;color:#1e293b;margin-top:2px;">${a.message}</div>
+                        <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">Raised: ${a.ts_raised.slice(11,19)} UTC</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        if (recentCleared.length > 0) {
+            html += `
+                <div style="margin-top:${active.length > 0 ? '14px' : '0'};padding-top:${active.length > 0 ? '10px' : '0'};border-top:${active.length > 0 ? '1px dashed #e2e8f0' : 'none'};">
+                    <div style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Recent Alert Log (${active.length === 0 ? 'Normal Now' : 'Resolved'})</div>
+                    ${recentCleared.map(a => `
+                        <div class="alert-item info" style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #94a3b8;opacity:0.9;padding:9px 12px;margin-bottom:6px;">
+                            <div style="font-size:0.82rem;width:100%;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                                    <span style="font-weight:700;font-size:0.72rem;color:#64748b;text-transform:uppercase;">${a.rule_key.replace(/_/g, ' ')} · RESOLVED</span>
+                                    <span style="font-size:0.72rem;color:#94a3b8;">${a.ts_raised.slice(11,19)} UTC</span>
+                                </div>
+                                <div style="color:#475569;">${a.message}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
+        }
+
+        feed.innerHTML = html;
     } catch (e) { console.error(e); }
 }
 

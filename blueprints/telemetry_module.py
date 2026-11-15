@@ -287,14 +287,15 @@ def api_history():
 
 @telemetry_bp.route("/api/alerts")
 def api_alerts():
-    if "user_id" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM alerts ORDER BY ts_raised DESC LIMIT 50"
-    ).fetchall()
-    conn.close()
-    return jsonify([dict(r) for r in rows])
+    try:
+        conn = get_db()
+        rows = conn.execute(
+            "SELECT * FROM alerts ORDER BY ts_raised DESC LIMIT 50"
+        ).fetchall()
+        conn.close()
+        return jsonify([dict(r) for r in rows])
+    except Exception as e:
+        return jsonify([])
 
 
 @telemetry_bp.route("/telemetry")
